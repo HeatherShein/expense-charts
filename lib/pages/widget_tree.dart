@@ -1,5 +1,6 @@
 import 'package:expenses_charts/pages/details.dart';
 import 'package:expenses_charts/pages/expense_graph.dart';
+import 'package:expenses_charts/pages/expense_pie.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -16,6 +17,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     ExpenseGraphPage(),
+    ExpensePiePage(),
     DetailsPage(),
   ];
 
@@ -49,6 +51,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
             bottomNavigationBar: BottomNavigationBar(
               items: const <BottomNavigationBarItem>[
                 BottomNavigationBarItem(icon: Icon(Icons.auto_graph_rounded), label: 'Graphs'),
+                BottomNavigationBarItem(icon: Icon(Icons.circle), label: 'Pie'),
                 BottomNavigationBarItem(icon: Icon(Icons.format_list_bulleted_rounded), label: 'Details')
               ],
               currentIndex: _selectedIndex,

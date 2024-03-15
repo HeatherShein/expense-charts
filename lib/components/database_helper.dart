@@ -1,6 +1,5 @@
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/models/expenses.dart';
-import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -118,9 +117,7 @@ class DatabaseHelper {
   }
 
   Future<List<Expense>> getLatestExpenses(int n) async {
-    debugPrint("Fetching expenses");
     final db = await _getDatabase();
-    debugPrint(db.toString());
 
     final List<Map<String, dynamic>> maps = await db.query(
       'expenses',

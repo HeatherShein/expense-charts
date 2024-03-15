@@ -5,93 +5,29 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ExpenseGraphPage extends StatefulWidget {
-  const ExpenseGraphPage({super.key});
+class ExpensePiePage extends StatefulWidget {
+  const ExpensePiePage({super.key});
 
   @override
-  State<ExpenseGraphPage> createState() => _ExpenseGraphPageState();
+  State<ExpensePiePage> createState() => _ExpensePiePageState();
 }
 
-class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
+class _ExpensePiePageState extends State<ExpensePiePage> {
   String entryType = 'expense';
   String aggregateType = 'month';
   DateTime startDate = DateTime(DateTime.now().year, 1, 1);
   DateTime endDate = DateTime.now();
 
-
-  List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups) {
-    Map<String, List<ExpenseGroup>> groupedByAggregate = {};
-
-    for (ExpenseGroup expenseGroup in expenseGroups) {
-      if (!groupedByAggregate.containsKey(expenseGroup.groupAggregate)) {
-        groupedByAggregate[expenseGroup.groupAggregate] = [];
-      }
-      groupedByAggregate[expenseGroup.groupAggregate]!.add(expenseGroup);
-    }
-
-    List<String> sortedKeys = groupedByAggregate.keys.toList()..sort();
-
-    return List.generate(sortedKeys.length, (i) {
-      var groupAggregate = sortedKeys[i];
-      var groupAggregateValues = groupedByAggregate[groupAggregate];
-
-      List<BarChartRodData> barRods = [];
-      double totalValue = 0.0;
-
-      for (var values in groupAggregateValues!) {
-        double aggregatedValue = double.parse(values.aggregatedValue.toStringAsFixed(2));
-        barRods.add(
-          BarChartRodData(
-            fromY: totalValue,
-            toY: totalValue + aggregatedValue,
-            color: ExpenseUtils.getColorForCategory(values.category),
-            width: 8,
-          ),
-        );
-        totalValue += aggregatedValue;
-      }
-
-      return BarChartGroupData(
-        x: i,
-        barRods: barRods,
-        groupVertically: true
+  List<PieChartSectionData> getSections(Map<String, List<double>> totalPerCategory) {
+    return totalPerCategory.keys.map((category) {
+      double total = totalPerCategory[category]!.reduce((value, element) => value + element);
+      total = double.parse(total.toStringAsFixed(2));
+      return PieChartSectionData(
+        value: total,
+        color: ExpenseUtils.getColorForCategory(category),
       );
-    });
+    }).toList();
   }
-
-  FlTitlesData getTitles(List<ExpenseGroup> expenseGroups) {
-    Map<String, List<ExpenseGroup>> groupedByAggregate = {};
-
-    for (ExpenseGroup expenseGroup in expenseGroups) {
-      if (!groupedByAggregate.containsKey(expenseGroup.groupAggregate)) {
-        groupedByAggregate[expenseGroup.groupAggregate] = [];
-      }
-    }
-
-    List<String> sortedKeys = groupedByAggregate.keys.toList()..sort();
-    return FlTitlesData(
-      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-      leftTitles: const AxisTitles(
-        axisNameWidget: Text("Amount (€)"),
-        sideTitles: SideTitles(showTitles: false)
-      ),
-      bottomTitles: AxisTitles(
-        axisNameWidget: Text(aggregateType),
-        sideTitles: SideTitles(
-          showTitles: true,
-          getTitlesWidget: (value, meta) {
-            int index = value.toInt();
-            if (index >= 0 && index < sortedKeys.length) {
-              return Text(sortedKeys[index]);
-            } else {
-              return const Text('');
-            }
-          },
-        )
-      ),
-    );
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -209,7 +145,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                         children: [
                           const SizedBox(height: 16,),
                           const Text(
-                            "Expenses per period",
+                            "Total expenses",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -217,18 +153,14 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                           ),
                           const SizedBox(height: 16,),
                           Flexible(
-                            child: BarChart(
-                              BarChartData(
-                                barGroups: getBarGroups(expenseGroups),
-                                borderData: FlBorderData(
-                                  show: true
-                                ),
-                                gridData: const FlGridData(
-                                  show: true,
-                                ),
-                                titlesData: getTitles(expenseGroups),
-                              ),
-                            ),
+                            child: PieChart(
+                              PieChartData(
+                                sections: getSections(totalPerCategory),
+                                sectionsSpace: 4,
+                                centerSpaceRadius: 40,
+                                borderData: FlBorderData()
+                              )
+                            )
                           ),
                         ],
                       ),
