@@ -15,7 +15,7 @@ class ExpensePiePage extends StatefulWidget {
 class _ExpensePiePageState extends State<ExpensePiePage> {
   String entryType = 'expense';
   String aggregateType = 'month';
-  DateTime startDate = DateTime(DateTime.now().year, 1, 1);
+  DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
   DateTime endDate = DateTime.now();
 
   List<PieChartSectionData> getSections(Map<String, List<double>> totalPerCategory) {

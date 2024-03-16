@@ -14,8 +14,8 @@ class ExpenseGraphPage extends StatefulWidget {
 
 class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
   String entryType = 'expense';
-  String aggregateType = 'month';
-  DateTime startDate = DateTime(DateTime.now().year, 1, 1);
+  String aggregateType = 'day';
+  DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
   DateTime endDate = DateTime.now();
 
 

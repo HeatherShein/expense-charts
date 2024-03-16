@@ -119,6 +119,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                 );
                 // ignore: use_build_context_synchronously
                 dynamic refreshData = await Navigator.push(
+                  // ignore: use_build_context_synchronously
                   context,
                   MaterialPageRoute(builder: (context) => expenseForm)
                 );
@@ -132,15 +133,38 @@ class _ExpenseTileState extends State<ExpenseTile> {
             ),
             IconButton(
               onPressed: () {
-                DatabaseHelper dbhelper = DatabaseHelper();
-                dbhelper.deleteExpense(
-                  widget.millisSinceEpoch, 
-                  widget.type, 
-                  widget.category, 
-                  widget.label, 
-                  widget.value,
+                showDialog(
+                  context: context, 
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text("Confirm deletion"),
+                      content: const Text("Are you sure to delete this ?"),
+                      actions: <Widget>[
+                        IconButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          icon: const Icon(Icons.not_interested_rounded)
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            DatabaseHelper dbhelper = DatabaseHelper();
+                            dbhelper.deleteExpense(
+                              widget.millisSinceEpoch, 
+                              widget.type, 
+                              widget.category, 
+                              widget.label, 
+                              widget.value,
+                            );
+                            widget.refreshCallback();
+                            Navigator.of(context).pop();
+                          }, 
+                          icon: const Icon(Icons.done_rounded)
+                        ),
+                      ]
+                    );
+                  }
                 );
-                widget.refreshCallback();
               }, 
               icon: const Icon(Icons.delete),
               color: Colors.blue,
