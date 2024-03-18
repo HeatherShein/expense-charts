@@ -35,6 +35,18 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
     return sections;
   }
 
+  static List<Indicator> getLegend(List<String> categories) {
+    categories.sort();
+    return List.generate(categories.length, (index) {
+      return Indicator(
+        color: ExpenseUtils.getColorForCategory(categories[index]), 
+        text: categories[index], 
+        isSquare: true,
+        isBold: false,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
@@ -48,7 +60,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
         } else {
           List<ExpenseGroup>? expenseGroups = snapshot.data;
           Map<String, List<double>> totalPerCategory = ExpenseUtils.getTotalPerCategory(expenseGroups!);
-          List<Indicator> indicators = ExpenseUtils.getLegend(totalPerCategory.keys.toList());
+          List<Indicator> indicators = getLegend(totalPerCategory.keys.toList());
           List<PieChartSectionData> sections = getSections(totalPerCategory);
           return Scaffold(
             appBar: AppBar(

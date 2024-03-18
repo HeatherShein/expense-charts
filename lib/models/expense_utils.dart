@@ -1,5 +1,4 @@
 import 'package:expenses_charts/components/database_helper.dart';
-import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:flutter/material.dart';
 import 'package:velocity_x/velocity_x.dart';
@@ -52,17 +51,6 @@ class ExpenseUtils {
       default:
         return await dbhelper.getExpensesPerYear(entryType, startDate, endDate);
     }
-  }
-
-  static List<Indicator> getLegend(List<String> categories) {
-    categories.sort();
-    return List.generate(categories.length, (index) {
-      return Indicator(
-        color: ExpenseUtils.getColorForCategory(categories[index]), 
-        text: categories[index], 
-        isSquare: true
-      );
-    });
   }
 
   static Map<String, List<double>> getTotalPerCategory(List<ExpenseGroup> expenseGroups) {

@@ -18,8 +18,9 @@ class ExpenseGraphPage extends StatefulWidget {
 
 class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
   String graphTitle = 'Expenses per period';
+  int boldIndex = -1;
 
-  List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups) {
+  List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups, {String key_filter = ''}) {
     Map<String, List<ExpenseGroup>> groupedByAggregate = {};
 
     // Regroup expenses by group aggregate
@@ -27,7 +28,10 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
       if (!groupedByAggregate.containsKey(expenseGroup.groupAggregate)) {
         groupedByAggregate[expenseGroup.groupAggregate] = [];
       }
-      groupedByAggregate[expenseGroup.groupAggregate]!.add(expenseGroup);
+      // Filter by category
+      if (key_filter == '' || key_filter == expenseGroup.category) {
+        groupedByAggregate[expenseGroup.groupAggregate]!.add(expenseGroup);
+      }
     }
 
     // Sort by aggregate
@@ -74,7 +78,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
     List<String> sortedKeys = groupedByAggregate.keys.toList()..sort();
 
     // Define number of maximum dates displayed
-    int xtick = (sortedKeys.length / 5).floor();
+    int xtick = (sortedKeys.length / 4).floor();
     return FlTitlesData(
       topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       leftTitles: const AxisTitles(
@@ -111,6 +115,29 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
     );
   }
 
+  List<Indicator> getLegend(List<String> categories, SettingsProvider settingsState) {
+    categories.sort();
+    return List.generate(categories.length, (index) {
+      return Indicator(
+        color: ExpenseUtils.getColorForCategory(categories[index]), 
+        text: categories[index], 
+        isSquare: true,
+        onTap: () {
+          setState(() {
+            if(settingsState.keyFilter == categories[index]) {
+              settingsState.keyFilter = '';
+              boldIndex = -1;
+            } else {
+              settingsState.keyFilter = categories[index];
+              boldIndex = index;
+            }
+          });
+        },
+        isBold: false,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
@@ -130,7 +157,11 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
         } else {
           List<ExpenseGroup>? expenseGroups = snapshot.data;
           Map<String, List<double>> totalPerCategory = ExpenseUtils.getTotalPerCategory(expenseGroups!);
-          List<Indicator> indicators = ExpenseUtils.getLegend(totalPerCategory.keys.toList());
+          List<Indicator> indicators = getLegend(totalPerCategory.keys.toList(), settingsState);
+          // Make the selected indicator bold
+          for (var i = 0; i < indicators.length; i++) {
+            indicators[i].isBold = i == boldIndex;
+          }
           return Scaffold(
             appBar: AppBar(
               leading: const Icon(
@@ -245,7 +276,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                     Flexible(
                       child: BarChart(
                         BarChartData(
-                          barGroups: getBarGroups(expenseGroups),
+                          barGroups: getBarGroups(expenseGroups, key_filter: settingsState.keyFilter),
                           borderData: FlBorderData(
                             show: true
                           ),
