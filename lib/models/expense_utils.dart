@@ -2,37 +2,38 @@ import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:flutter/material.dart';
+import 'package:velocity_x/velocity_x.dart';
 
 class ExpenseUtils {
   static Color getColorForCategory(String category) {
-    Color outColor = Colors.black;
+    Color outColor = Vx.black;
     switch (category) {
       case 'grocery':
-        outColor = Colors.yellow;
+        outColor = Vx.yellow400;
         break;
       case 'regular':
-        outColor = Colors.blue;
+        outColor = Vx.blue400;
         break;
       case 'restaurant':
-        outColor = Colors.orange;
+        outColor = Vx.orange400;
         break;
       case 'pleasure':
-        outColor = Colors.purple;
+        outColor = Vx.purple400;
         break;
       case 'trip':
-        outColor = Colors.pink;
+        outColor = Vx.pink400;
         break;
       case 'exceptional':
-        outColor = Colors.amber;
+        outColor = Vx.amber400;
         break;
       case 'health':
-        outColor = Colors.teal;
+        outColor = Vx.teal400;
         break;
       case 'alcohol':
-        outColor = Colors.red;
+        outColor = Vx.red400;
         break;
       default:
-        outColor = Colors.black;
+        outColor = Vx.black;
     }
     return outColor;
   }
@@ -54,6 +55,7 @@ class ExpenseUtils {
   }
 
   static List<Indicator> getLegend(List<String> categories) {
+    categories.sort();
     return List.generate(categories.length, (index) {
       return Indicator(
         color: ExpenseUtils.getColorForCategory(categories[index]), 

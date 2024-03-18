@@ -1,4 +1,5 @@
 import 'package:expenses_charts/components/database_helper.dart';
+import 'package:expenses_charts/components/money_amount.dart';
 import 'package:expenses_charts/models/expense_utils.dart';
 import 'package:expenses_charts/pages/expense_form.dart';
 import 'package:flutter/material.dart';
@@ -26,88 +27,55 @@ class _ExpenseTileState extends State<ExpenseTile> {
       crossAxisAlignment: CrossAxisAlignment.center,
       textBaseline: TextBaseline.alphabetic,
       children: [
-        const SizedBox(width: 10.0),
-        Container(
-          width: 40.0,
-          height: 40.0,
-          decoration: BoxDecoration(
-            color: widget.type == 'expense' ? Vx.red200 : Vx.green200,
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          child: Center(
-            child: Text(
-              widget.type[0],
-              style: const TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold
-              )
-            )
-          )
-        ),
         const SizedBox(width: 8.0,),
         Container(
+          height: 35,
+          width: 90,
           padding: const EdgeInsets.all(4.0),
           decoration: BoxDecoration(
             color: ExpenseUtils.getColorForCategory(widget.category),
             borderRadius: BorderRadius.circular(4.0)
           ),
-          child: Text(
-            widget.category,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.black
-            )
+          child: Center(
+            child: Text(
+              widget.category,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black
+              )
+            ),
           )
         ),
         Flexible(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.label.trim(),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500
+            child: SizedBox(
+              width: 500,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.label.trim(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500
+                    ),
                   ),
-                ),
-                Text(
-                  DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpoch)),
-                  style: const TextStyle(
-                    fontSize: 10,
+                  Text(
+                    DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpoch)),
+                    style: const TextStyle(
+                      fontSize: 10,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             )
           )
         ),
-        const Spacer(),
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(4.0),
-              child: Text(
-                widget.value.toStringAsFixed(2),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black
-                )
-              )
-            ),
-            Container(
-              padding: const EdgeInsets.all(4.0),
-              child: const Text(
-                "€",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black
-                )
-              )
-            ),
+            MoneyAmount(width: 80, type: widget.type, value: widget.value),
             IconButton(
               onPressed: () async {
                 ExpenseForm expenseForm = await ExpenseForm.createWithExpenseId(
@@ -129,7 +97,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                 }
               }, 
               icon: const Icon(Icons.edit),
-              color: Colors.blue,
+              color: Vx.blue400,
             ),
             IconButton(
               onPressed: () {
@@ -139,6 +107,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                     return AlertDialog(
                       title: const Text("Confirm deletion"),
                       content: const Text("Are you sure to delete this ?"),
+                      actionsAlignment: MainAxisAlignment.spaceEvenly,
                       actions: <Widget>[
                         IconButton(
                           onPressed: () {
@@ -167,11 +136,10 @@ class _ExpenseTileState extends State<ExpenseTile> {
                 );
               }, 
               icon: const Icon(Icons.delete),
-              color: Colors.blue,
+              color: Vx.red400,
             ),
           ],
         ),
-        
       ],
     );
   }

@@ -20,8 +20,8 @@ class ExpenseForm extends StatelessWidget {
     millisSinceEpoch = DateTime.now().millisecondsSinceEpoch,
     type = "default",
     category = "default",
-    label = "default",
-    value = 0.0,
+    label = "",
+    value = 0,
     expenseId = -1;
 
   ExpenseForm.withValues({
@@ -153,7 +153,6 @@ class ExpenseForm extends StatelessWidget {
                     hintText: 'Write a value',
                   ),
                   keyboardType: TextInputType.number,
-                  initialValue: value.toString(),
                 ),
                 const SizedBox(height: 10.0,),
                 MaterialButton(
@@ -167,7 +166,7 @@ class ExpenseForm extends StatelessWidget {
                     type = formValues?['type'];
                     category = formValues?['category'];
                     label = formValues?['label'];
-                    value = double.parse(formValues?['value']);
+                    value = double.parse(formValues!['value'].toString().replaceAll(",", "."));
     
                     var dbhelper = DatabaseHelper();
 

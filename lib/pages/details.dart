@@ -1,8 +1,10 @@
 import 'package:expenses_charts/components/expense_tile.dart';
 import 'package:expenses_charts/pages/expense_form.dart';
+import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
+import 'package:provider/provider.dart';
 
 class DetailsPage extends StatefulWidget {
   const DetailsPage({super.key});
@@ -13,7 +15,6 @@ class DetailsPage extends StatefulWidget {
 
 class _DetailsPageState extends State<DetailsPage> {
   late DatabaseHelper dbhelper;
-  int nExpenses = 10;
 
   @override
   void initState() {
@@ -21,15 +22,15 @@ class _DetailsPageState extends State<DetailsPage> {
     dbhelper = DatabaseHelper();
   }
 
-  void updateExpenses(bool increase) {
+  void updateExpenses(bool increase, SettingsProvider settingsState) {
     setState(() {
       if (increase) {
-        nExpenses += 10;
+        settingsState.nExpenses += 13;
       } else {
-        if (nExpenses > 10) {
-          nExpenses -= 10;
+        if (settingsState.nExpenses > 13) {
+          settingsState.nExpenses -= 13;
         } else {
-          nExpenses = 1;
+          settingsState.nExpenses = 1;
         }
       }
     });
@@ -37,16 +38,17 @@ class _DetailsPageState extends State<DetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    SettingsProvider settingsState = context.watch<SettingsProvider>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Details'),
         actions: [
           IconButton(
-            onPressed: () => updateExpenses(false), 
+            onPressed: () => updateExpenses(false, settingsState), 
             icon: const Icon(Icons.remove)
           ),
           IconButton(
-            onPressed: () => updateExpenses(true), 
+            onPressed: () => updateExpenses(true, settingsState), 
             icon: const Icon(Icons.add)
           ),
         ],
@@ -59,7 +61,7 @@ class _DetailsPageState extends State<DetailsPage> {
               const SizedBox(height:10.0),
               Flexible(
                 child: FutureBuilder<List<Expense>>(
-                  future: dbhelper.getLatestExpenses(nExpenses),
+                  future: dbhelper.getLatestExpenses(settingsState.nExpenses),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
@@ -92,7 +94,6 @@ class _DetailsPageState extends State<DetailsPage> {
                       context,
                       MaterialPageRoute(builder: (context) => ExpenseForm()),
                     );
-
                     if (refreshData != null && refreshData is bool && refreshData) {
                       setState(() {});
                     }

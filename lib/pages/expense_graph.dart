@@ -1,9 +1,13 @@
 import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/models/expense_utils.dart';
+import 'package:expenses_charts/pages/expense_form.dart';
+import 'package:expenses_charts/providers/settings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:velocity_x/velocity_x.dart';
 
 class ExpenseGraphPage extends StatefulWidget {
   const ExpenseGraphPage({super.key});
@@ -13,11 +17,7 @@ class ExpenseGraphPage extends StatefulWidget {
 }
 
 class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
-  String entryType = 'expense';
-  String aggregateType = 'day';
-  DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
-  DateTime endDate = DateTime.now();
-
+  String graphTitle = 'Expenses per period';
 
   List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups) {
     Map<String, List<ExpenseGroup>> groupedByAggregate = {};
@@ -59,7 +59,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
     });
   }
 
-  FlTitlesData getTitles(List<ExpenseGroup> expenseGroups) {
+  FlTitlesData getTitles(List<ExpenseGroup> expenseGroups, SettingsProvider settingsState) {
     Map<String, List<ExpenseGroup>> groupedByAggregate = {};
 
     for (ExpenseGroup expenseGroup in expenseGroups) {
@@ -69,24 +69,38 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
     }
 
     List<String> sortedKeys = groupedByAggregate.keys.toList()..sort();
+    int xtick = sortedKeys.length % 10;
     return FlTitlesData(
       topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       leftTitles: const AxisTitles(
         axisNameWidget: Text("Amount (€)"),
-        sideTitles: SideTitles(showTitles: false)
+        sideTitles: SideTitles(showTitles: false, reservedSize: 44)
+      ),
+      rightTitles: AxisTitles(
+        sideTitles: SideTitles(
+          showTitles: true,
+          getTitlesWidget: (value, meta) {
+            if(value == meta.max && value % 10 != 0) {
+              return const Text('');
+            }
+            return Text(" ${value.toInt()}");
+          },
+          reservedSize: 44,
+        ),
       ),
       bottomTitles: AxisTitles(
-        axisNameWidget: Text(aggregateType),
+        axisNameWidget: Text(settingsState.aggregateType),
         sideTitles: SideTitles(
           showTitles: true,
           getTitlesWidget: (value, meta) {
             int index = value.toInt();
-            if (index >= 0 && index < sortedKeys.length) {
+            if (index >= 0 && index < sortedKeys.length && index % xtick == 0) {
               return Text(sortedKeys[index]);
             } else {
               return const Text('');
             }
           },
+          reservedSize: 30
         )
       ),
     );
@@ -95,8 +109,9 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
 
   @override
   Widget build(BuildContext context) {
+    SettingsProvider settingsState = context.watch<SettingsProvider>();
     return FutureBuilder(
-      future: ExpenseUtils.getExpenseGroups(entryType, aggregateType, startDate, endDate), 
+      future: ExpenseUtils.getExpenseGroups(settingsState.entryType, settingsState.aggregateType, settingsState.startDate, settingsState.endDate), 
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
@@ -112,133 +127,179 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
             }
             totalPerCategory[expenseGroup.category]!.add(expenseGroup.aggregatedValue);
           }
+          // Add empty categories
+          for (String category in ["alcohol", "exceptional", "grocery", "health", "pleasure", "regular", "restaurant", "trip"]) {
+            if (!totalPerCategory.containsKey(category)) {
+              totalPerCategory[category] = [0];
+            }
+          }
           List<Indicator> indicators = ExpenseUtils.getLegend(totalPerCategory.keys.toList());
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Expenses'),
-              actions: [
-                DropdownButton<String>(
-                  value: entryType,
-                  items: const <DropdownMenuItem<String>>[
-                    DropdownMenuItem<String>(
-                      value: 'expense',
-                      child: Text('Expense')
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'income',
-                      child: Text('Income')
-                    ),
-                  ], 
-                  onChanged: (String? value) {
-                    setState(() {
-                      entryType = value!;
-                    });
-                  }
-                ),
-                DropdownButton<String>(
-                  value: aggregateType,
-                  items: const <DropdownMenuItem<String>>[
-                    DropdownMenuItem<String>(
-                      value: 'year',
-                      child: Text('Yearly')
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'month',
-                      child: Text('Monthly')
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'week',
-                      child: Text('Weekly')
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'day',
-                      child: Text('Daily')
-                    ),
-                  ], 
-                  onChanged: (String? value) {
-                    setState(() {
-                      aggregateType = value!;
-                    });
-                  }
-                ),
-                Text(DateFormat('yyyy-MM-dd').format(startDate)),
-                IconButton(
-                  icon: const Icon(Icons.calendar_today),
-                  onPressed: () async {
-                    DateTime? newStartDate = await showDatePicker(
-                        context: context,
-                        initialDate: startDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(DateTime.now().year, 12, 31),
-                        helpText: 'Select a start date'
-                    );
-                    if (newStartDate != null) {
-                      setState(() {  
-                        startDate = newStartDate;
-                      });
-                    }
-                  },
-                ),
-                Text(DateFormat('yyyy-MM-dd').format(endDate)),
-                IconButton(
-                  icon: const Icon(Icons.calendar_today),
-                  onPressed: () async {
-                    DateTime? newEndDate = await showDatePicker(
-                        context: context,
-                        initialDate: endDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(DateTime.now().year, 12, 31),
-                        helpText: 'Select an end date'
-                      );
-                    if (newEndDate != null) {
-                      setState(() {  
-                        endDate = newEndDate;
-                      });
-                    }
-                  },
-                ),
-              ],
+              leading: const Icon(
+                Icons.auto_graph_rounded, 
+                color: Vx.orange400,
+              ),
+              title: const Text("Graph"),
             ),
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Row(
+                child: Column(
                   children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 16,),
-                          const Text(
-                            "Expenses per period",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            )
-                          ),
-                          const SizedBox(height: 16,),
-                          Flexible(
-                            child: BarChart(
-                              BarChartData(
-                                barGroups: getBarGroups(expenseGroups),
-                                borderData: FlBorderData(
-                                  show: true
-                                ),
-                                gridData: const FlGridData(
-                                  show: true,
-                                ),
-                                titlesData: getTitles(expenseGroups),
-                              ),
+                    Text(
+                      graphTitle,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      )
+                    ),
+                    const SizedBox(height: 16,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        DropdownButton<String>(
+                          value: settingsState.entryType,
+                          items: const <DropdownMenuItem<String>>[
+                            DropdownMenuItem<String>(
+                              value: 'expense',
+                              child: Text('Expense')
                             ),
+                            DropdownMenuItem<String>(
+                              value: 'income',
+                              child: Text('Income')
+                            ),
+                          ], 
+                          onChanged: (String? value) {
+                            setState(() {
+                              settingsState.entryType = value!;
+                              if(settingsState.entryType == 'expense') {
+                                graphTitle = "Expenses per period";
+                              } else {
+                                graphTitle = "Incomes per period";
+                              }
+                            });
+                          }
+                        ),
+                        DropdownButton<String>(
+                          value: settingsState.aggregateType,
+                          items: const <DropdownMenuItem<String>>[
+                            DropdownMenuItem<String>(
+                              value: 'year',
+                              child: Text('Yearly')
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'month',
+                              child: Text('Monthly')
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'week',
+                              child: Text('Weekly')
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'day',
+                              child: Text('Daily')
+                            ),
+                          ], 
+                          onChanged: (String? value) {
+                            setState(() {
+                              settingsState.aggregateType = value!;
+                            });
+                          }
+                        ),
+                        Text(DateFormat('yyyy-MM-dd').format(settingsState.startDate)),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: () async {
+                            DateTime? newStartDate = await showDatePicker(
+                                context: context,
+                                initialDate: settingsState.startDate,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(DateTime.now().year, 12, 31),
+                                helpText: 'Select a start date'
+                            );
+                            if (newStartDate != null) {
+                              setState(() {  
+                                settingsState.startDate = newStartDate;
+                              });
+                            }
+                          },
+                        ),
+                        Text(DateFormat('yyyy-MM-dd').format(settingsState.endDate)),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: () async {
+                            DateTime? newEndDate = await showDatePicker(
+                                context: context,
+                                initialDate: settingsState.endDate,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(DateTime.now().year, 12, 31),
+                                helpText: 'Select an end date'
+                              );
+                            if (newEndDate != null) {
+                              setState(() {  
+                                settingsState.endDate = newEndDate;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    Flexible(
+                      child: BarChart(
+                        BarChartData(
+                          barGroups: getBarGroups(expenseGroups),
+                          borderData: FlBorderData(
+                            show: true
                           ),
-                        ],
+                          gridData: const FlGridData(
+                            show: true,
+                          ),
+                          titlesData: getTitles(expenseGroups, settingsState),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16,),
+                    const SizedBox(height: 16,),
                     Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: indicators
-                    )
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [indicators[0], indicators[1], indicators[2], indicators[3]],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [indicators[4], indicators[5], indicators[6]],
+                        )
+                      ]
+                    ),
+                    const SizedBox(height: 25,),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () async {
+                          dynamic refreshData = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => ExpenseForm()),
+                          );
+                          if (refreshData != null && refreshData is bool && refreshData) {
+                            setState(() {});
+                          }
+                        },
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 30
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10.0),
                   ],
                 ),
               ),
