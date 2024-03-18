@@ -47,20 +47,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
           return Text('Error ${snapshot.error}');
         } else {
           List<ExpenseGroup>? expenseGroups = snapshot.data;
-          Map<String, List<double>> totalPerCategory = {};
-
-          for (ExpenseGroup expenseGroup in expenseGroups!) {
-            if (!totalPerCategory.containsKey(expenseGroup.category)) {
-              totalPerCategory[expenseGroup.category] = [];
-            }
-            totalPerCategory[expenseGroup.category]!.add(expenseGroup.aggregatedValue);
-          }
-          // Add empty categories
-          for (String category in ["alcohol", "exceptional", "grocery", "health", "pleasure", "regular", "restaurant", "trip"]) {
-            if (!totalPerCategory.containsKey(category)) {
-              totalPerCategory[category] = [0];
-            }
-          }
+          Map<String, List<double>> totalPerCategory = ExpenseUtils.getTotalPerCategory(expenseGroups!);
           List<Indicator> indicators = ExpenseUtils.getLegend(totalPerCategory.keys.toList());
           List<PieChartSectionData> sections = getSections(totalPerCategory);
           return Scaffold(

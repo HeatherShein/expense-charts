@@ -22,6 +22,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
   List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups) {
     Map<String, List<ExpenseGroup>> groupedByAggregate = {};
 
+    // Regroup expenses by group aggregate
     for (ExpenseGroup expenseGroup in expenseGroups) {
       if (!groupedByAggregate.containsKey(expenseGroup.groupAggregate)) {
         groupedByAggregate[expenseGroup.groupAggregate] = [];
@@ -29,6 +30,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
       groupedByAggregate[expenseGroup.groupAggregate]!.add(expenseGroup);
     }
 
+    // Sort by aggregate
     List<String> sortedKeys = groupedByAggregate.keys.toList()..sort();
 
     return List.generate(sortedKeys.length, (i) {
@@ -60,16 +62,19 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
   }
 
   FlTitlesData getTitles(List<ExpenseGroup> expenseGroups, SettingsProvider settingsState) {
+    // Regroup expenses by group aggregate
     Map<String, List<ExpenseGroup>> groupedByAggregate = {};
-
     for (ExpenseGroup expenseGroup in expenseGroups) {
       if (!groupedByAggregate.containsKey(expenseGroup.groupAggregate)) {
         groupedByAggregate[expenseGroup.groupAggregate] = [];
       }
     }
 
+    // Sort by aggregate
     List<String> sortedKeys = groupedByAggregate.keys.toList()..sort();
-    int xtick = sortedKeys.length % 10;
+
+    // Define number of maximum dates displayed
+    int xtick = (sortedKeys.length / 5).floor();
     return FlTitlesData(
       topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       leftTitles: const AxisTitles(
@@ -106,12 +111,17 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
     return FutureBuilder(
-      future: ExpenseUtils.getExpenseGroups(settingsState.entryType, settingsState.aggregateType, settingsState.startDate, settingsState.endDate), 
+      // Load expense groups
+      future: ExpenseUtils.getExpenseGroups(
+        settingsState.entryType, 
+        settingsState.aggregateType, 
+        settingsState.startDate, 
+        settingsState.endDate
+      ), 
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
@@ -119,20 +129,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           return Text('Error ${snapshot.error}');
         } else {
           List<ExpenseGroup>? expenseGroups = snapshot.data;
-          Map<String, List<double>> totalPerCategory = {};
-
-          for (ExpenseGroup expenseGroup in expenseGroups!) {
-            if (!totalPerCategory.containsKey(expenseGroup.category)) {
-              totalPerCategory[expenseGroup.category] = [];
-            }
-            totalPerCategory[expenseGroup.category]!.add(expenseGroup.aggregatedValue);
-          }
-          // Add empty categories
-          for (String category in ["alcohol", "exceptional", "grocery", "health", "pleasure", "regular", "restaurant", "trip"]) {
-            if (!totalPerCategory.containsKey(category)) {
-              totalPerCategory[category] = [0];
-            }
-          }
+          Map<String, List<double>> totalPerCategory = ExpenseUtils.getTotalPerCategory(expenseGroups!);
           List<Indicator> indicators = ExpenseUtils.getLegend(totalPerCategory.keys.toList());
           return Scaffold(
             appBar: AppBar(

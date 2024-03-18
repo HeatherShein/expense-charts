@@ -64,4 +64,22 @@ class ExpenseUtils {
       );
     });
   }
+
+  static Map<String, List<double>> getTotalPerCategory(List<ExpenseGroup> expenseGroups) {
+    Map<String, List<double>> totalPerCategory = {};
+
+    for (ExpenseGroup expenseGroup in expenseGroups) {
+      if (!totalPerCategory.containsKey(expenseGroup.category)) {
+        totalPerCategory[expenseGroup.category] = [];
+      }
+      totalPerCategory[expenseGroup.category]!.add(expenseGroup.aggregatedValue);
+    }
+    // Add empty categories
+    for (String category in ["alcohol", "exceptional", "grocery", "health", "pleasure", "regular", "restaurant", "trip"]) {
+      if (!totalPerCategory.containsKey(category)) {
+        totalPerCategory[category] = [0];
+      }
+    }
+    return totalPerCategory;
+  }
 }

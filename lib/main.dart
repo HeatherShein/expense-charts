@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 Future main() async {
+  // Connect to database
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 
@@ -13,11 +14,11 @@ Future main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
+      // Setup providers
       providers: [
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
       ],

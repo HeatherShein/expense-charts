@@ -15,6 +15,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
 
   int _selectedIndex = 0;
 
+  // Bottom menu with pages
   static const List<Widget> _widgetOptions = <Widget>[
     ExpenseGraphPage(),
     ExpensePiePage(),
@@ -27,6 +28,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
     });
   }
 
+  // When first installed, the app requires permission to store data
   Future<PermissionStatus> requestStoragePermission() async {
     var status = await Permission.storage.request();
     return status;
@@ -44,6 +46,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
         } else {
           PermissionStatus? status = snapshot.data;
           if (status!.isGranted) {
+            // Got authorization
             return Scaffold(
             body: Center(child: _widgetOptions.elementAt(
               _selectedIndex
