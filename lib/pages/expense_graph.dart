@@ -1,4 +1,5 @@
 import 'package:expenses_charts/components/indicator.dart';
+import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/models/expense_utils.dart';
 import 'package:expenses_charts/pages/expense_form.dart';
@@ -18,9 +19,8 @@ class ExpenseGraphPage extends StatefulWidget {
 
 class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
   String graphTitle = 'Expenses per period';
-  int boldIndex = -1;
 
-  List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups, {String key_filter = ''}) {
+  List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups, {String keyFilter = ''}) {
     Map<String, List<ExpenseGroup>> groupedByAggregate = {};
 
     // Regroup expenses by group aggregate
@@ -29,7 +29,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
         groupedByAggregate[expenseGroup.groupAggregate] = [];
       }
       // Filter by category
-      if (key_filter == '' || key_filter == expenseGroup.category) {
+      if (keyFilter == '' || keyFilter == expenseGroup.category) {
         groupedByAggregate[expenseGroup.groupAggregate]!.add(expenseGroup);
       }
     }
@@ -78,7 +78,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
     List<String> sortedKeys = groupedByAggregate.keys.toList()..sort();
 
     // Define number of maximum dates displayed
-    int xtick = (sortedKeys.length / 4).floor();
+    int xtick = (sortedKeys.length / 4).floor() == 0 ? 1 : (sortedKeys.length / 4).floor();
     return FlTitlesData(
       topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       leftTitles: const AxisTitles(
@@ -126,10 +126,10 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           setState(() {
             if(settingsState.keyFilter == categories[index]) {
               settingsState.keyFilter = '';
-              boldIndex = -1;
+              settingsState.boldIndex = -1;
             } else {
               settingsState.keyFilter = categories[index];
-              boldIndex = index;
+              settingsState.boldIndex = index;
             }
           });
         },
@@ -160,7 +160,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           List<Indicator> indicators = getLegend(totalPerCategory.keys.toList(), settingsState);
           // Make the selected indicator bold
           for (var i = 0; i < indicators.length; i++) {
-            indicators[i].isBold = i == boldIndex;
+            indicators[i].isBold = i == settingsState.boldIndex;
           }
           return Scaffold(
             appBar: AppBar(
@@ -169,6 +169,9 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                 color: Vx.orange400,
               ),
               title: const Text("Graph"),
+              actions: const [
+                SettingsMenu(),
+              ],
             ),
             body: SafeArea(
               child: Padding(
@@ -183,100 +186,109 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                       )
                     ),
                     const SizedBox(height: 16,),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Column(
                       children: [
-                        DropdownButton<String>(
-                          value: settingsState.entryType,
-                          items: const <DropdownMenuItem<String>>[
-                            DropdownMenuItem<String>(
-                              value: 'expense',
-                              child: Text('Expense')
-                            ),
-                            DropdownMenuItem<String>(
-                              value: 'income',
-                              child: Text('Income')
-                            ),
-                          ], 
-                          onChanged: (String? value) {
-                            setState(() {
-                              settingsState.entryType = value!;
-                              if(settingsState.entryType == 'expense') {
-                                graphTitle = "Expenses per period";
-                              } else {
-                                graphTitle = "Incomes per period";
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            DropdownButton<String>(
+                              value: settingsState.entryType,
+                              items: const <DropdownMenuItem<String>>[
+                                DropdownMenuItem<String>(
+                                  value: 'expense',
+                                  child: Text('Expense')
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'income',
+                                  child: Text('Income')
+                                ),
+                              ], 
+                              onChanged: (String? value) {
+                                setState(() {
+                                  settingsState.entryType = value!;
+                                  if(settingsState.entryType == 'expense') {
+                                    graphTitle = "Expenses per period";
+                                  } else {
+                                    graphTitle = "Incomes per period";
+                                  }
+                                });
                               }
-                            });
-                          }
+                            ),
+                            DropdownButton<String>(
+                              value: settingsState.aggregateType,
+                              items: const <DropdownMenuItem<String>>[
+                                DropdownMenuItem<String>(
+                                  value: 'year',
+                                  child: Text('Yearly')
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'month',
+                                  child: Text('Monthly')
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'week',
+                                  child: Text('Weekly')
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'day',
+                                  child: Text('Daily')
+                                ),
+                              ], 
+                              onChanged: (String? value) {
+                                setState(() {
+                                  settingsState.aggregateType = value!;
+                                });
+                              }
+                            ),
+                          ],
                         ),
-                        DropdownButton<String>(
-                          value: settingsState.aggregateType,
-                          items: const <DropdownMenuItem<String>>[
-                            DropdownMenuItem<String>(
-                              value: 'year',
-                              child: Text('Yearly')
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(DateFormat('yyyy-MM-dd').format(settingsState.startDate)),
+                            IconButton(
+                              icon: const Icon(Icons.calendar_today),
+                              onPressed: () async {
+                                DateTime? newStartDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: settingsState.startDate,
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime(DateTime.now().year, 12, 31),
+                                    helpText: 'Select a start date'
+                                );
+                                if (newStartDate != null) {
+                                  setState(() {  
+                                    settingsState.startDate = newStartDate;
+                                  });
+                                }
+                              },
                             ),
-                            DropdownMenuItem<String>(
-                              value: 'month',
-                              child: Text('Monthly')
+                            Text(DateFormat('yyyy-MM-dd').format(settingsState.endDate)),
+                            IconButton(
+                              icon: const Icon(Icons.calendar_today),
+                              onPressed: () async {
+                                DateTime? newEndDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: settingsState.endDate,
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime(DateTime.now().year, 12, 31),
+                                    helpText: 'Select an end date'
+                                  );
+                                if (newEndDate != null) {
+                                  setState(() {  
+                                    settingsState.endDate = newEndDate;
+                                  });
+                                }
+                              },
                             ),
-                            DropdownMenuItem<String>(
-                              value: 'week',
-                              child: Text('Weekly')
-                            ),
-                            DropdownMenuItem<String>(
-                              value: 'day',
-                              child: Text('Daily')
-                            ),
-                          ], 
-                          onChanged: (String? value) {
-                            setState(() {
-                              settingsState.aggregateType = value!;
-                            });
-                          }
-                        ),
-                        Text(DateFormat('yyyy-MM-dd').format(settingsState.startDate)),
-                        IconButton(
-                          icon: const Icon(Icons.calendar_today),
-                          onPressed: () async {
-                            DateTime? newStartDate = await showDatePicker(
-                                context: context,
-                                initialDate: settingsState.startDate,
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime(DateTime.now().year, 12, 31),
-                                helpText: 'Select a start date'
-                            );
-                            if (newStartDate != null) {
-                              setState(() {  
-                                settingsState.startDate = newStartDate;
-                              });
-                            }
-                          },
-                        ),
-                        Text(DateFormat('yyyy-MM-dd').format(settingsState.endDate)),
-                        IconButton(
-                          icon: const Icon(Icons.calendar_today),
-                          onPressed: () async {
-                            DateTime? newEndDate = await showDatePicker(
-                                context: context,
-                                initialDate: settingsState.endDate,
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime(DateTime.now().year, 12, 31),
-                                helpText: 'Select an end date'
-                              );
-                            if (newEndDate != null) {
-                              setState(() {  
-                                settingsState.endDate = newEndDate;
-                              });
-                            }
-                          },
+                          ],
                         ),
                       ],
                     ),
                     Flexible(
                       child: BarChart(
                         BarChartData(
-                          barGroups: getBarGroups(expenseGroups, key_filter: settingsState.keyFilter),
+                          barGroups: getBarGroups(expenseGroups, keyFilter: settingsState.keyFilter),
                           borderData: FlBorderData(
                             show: true
                           ),

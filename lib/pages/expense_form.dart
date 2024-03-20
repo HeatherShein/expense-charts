@@ -153,6 +153,7 @@ class ExpenseForm extends StatelessWidget {
                     hintText: 'Write a value',
                   ),
                   keyboardType: TextInputType.number,
+                  initialValue: value.toString(),
                 ),
                 const SizedBox(height: 10.0,),
                 MaterialButton(

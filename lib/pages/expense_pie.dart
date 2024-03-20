@@ -1,5 +1,6 @@
 import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/components/money_amount.dart';
+import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/models/expense_utils.dart';
 import 'package:expenses_charts/pages/expense_form.dart';
@@ -69,6 +70,9 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                 color: Vx.orange400,
               ),
               title: const Text("Pie chart"),
+              actions: const [
+                SettingsMenu(),
+              ],
             ),
             body: SafeArea(
               child: Padding(

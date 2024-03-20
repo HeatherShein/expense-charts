@@ -7,6 +7,7 @@ class SettingsProvider extends ChangeNotifier{
   DateTime _endDate = DateTime.now();
   int _nExpenses = 13;
   String _keyFilter = '';
+  int _boldIndex = -1;
 
   String get entryType => _entryType;
   String get aggregateType => _aggregateType;
@@ -14,6 +15,7 @@ class SettingsProvider extends ChangeNotifier{
   DateTime get endDate => _endDate;
   int get nExpenses => _nExpenses;
   String get keyFilter => _keyFilter;
+  int get boldIndex => _boldIndex;
 
   set entryType(String newEntryType) {
     _entryType = newEntryType;
@@ -42,5 +44,9 @@ class SettingsProvider extends ChangeNotifier{
 
   set keyFilter (String newKeyFilter) {
     _keyFilter = newKeyFilter;
+  }
+
+  set boldIndex (int newBoldIndex) {
+    _boldIndex = newBoldIndex;
   }
 }

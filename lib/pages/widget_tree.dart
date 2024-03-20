@@ -45,7 +45,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
           return Text('Error ${snapshot.error}');
         } else {
           PermissionStatus? status = snapshot.data;
-          if (status!.isGranted) {
+          if (status!.isGranted || status.isDenied) { // FIXME : should never be isDenied, but my second phone works while denying for some reasons.
             // Got authorization
             return Scaffold(
             body: Center(child: _widgetOptions.elementAt(
@@ -67,14 +67,16 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
               body: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    child: const Text("Allow Storage"),
-                    onPressed: () async {
-                      PermissionStatus status = await requestStoragePermission();
-                      if (status.isGranted) {
-                        setState(() {});
-                      }
-                    },
+                  child: Center(
+                    child: ElevatedButton(
+                      child: const Text("Allow Storage"),
+                      onPressed: () async {
+                        PermissionStatus status = await requestStoragePermission();
+                        if (status.isGranted) {
+                          setState(() {});
+                        }
+                      },
+                    ),
                   ),
                 ),
               ),

@@ -1,10 +1,12 @@
 import 'package:expenses_charts/components/expense_tile.dart';
+import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/pages/expense_form.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
 import 'package:provider/provider.dart';
+import 'package:velocity_x/velocity_x.dart';
 
 class DetailsPage extends StatefulWidget {
   const DetailsPage({super.key});
@@ -41,6 +43,10 @@ class _DetailsPageState extends State<DetailsPage> {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
     return Scaffold(
       appBar: AppBar(
+        leading: const Icon(
+          Icons.list,
+          color: Vx.orange400,
+        ),
         title: const Text('Details'),
         actions: [
           IconButton(
@@ -51,6 +57,7 @@ class _DetailsPageState extends State<DetailsPage> {
             onPressed: () => updateExpenses(true, settingsState), 
             icon: const Icon(Icons.add)
           ),
+          const SettingsMenu(),
         ],
       ),
       body: SafeArea(

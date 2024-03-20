@@ -152,7 +152,9 @@ class DatabaseHelper {
       FROM 
         expenses
       WHERE
-        datetime(millisSinceEpoch / 1000, 'unixepoch') BETWEEN ? AND ?
+        datetime(millisSinceEpoch / 1000, 'unixepoch') >= date(?)
+        AND
+        datetime(millisSinceEpoch / 1000, 'unixepoch') < date(?, '+1 day')
         AND
         type = ?
       GROUP BY
@@ -185,7 +187,9 @@ class DatabaseHelper {
       FROM 
         expenses
       WHERE
-        datetime(millisSinceEpoch / 1000, 'unixepoch') BETWEEN ? AND ?
+        datetime(millisSinceEpoch / 1000, 'unixepoch') >= date(?)
+        AND
+        datetime(millisSinceEpoch / 1000, 'unixepoch') < date(?, '+1 day')
         AND
         type = ?
       GROUP BY
@@ -218,7 +222,9 @@ class DatabaseHelper {
       FROM 
         expenses
       WHERE
-        datetime(millisSinceEpoch / 1000, 'unixepoch') BETWEEN ? AND ?
+        datetime(millisSinceEpoch / 1000, 'unixepoch') >= date(?)
+        AND
+        datetime(millisSinceEpoch / 1000, 'unixepoch') < date(?, '+1 day')
         AND
         type = ?
       GROUP BY
@@ -251,7 +257,9 @@ class DatabaseHelper {
       FROM 
         expenses
       WHERE
-        datetime(millisSinceEpoch / 1000, 'unixepoch') BETWEEN ? AND ?
+        datetime(millisSinceEpoch / 1000, 'unixepoch') >= date(?)
+        AND
+        datetime(millisSinceEpoch / 1000, 'unixepoch') < date(?, '+1 day')
         AND
         type = ?
       GROUP BY
@@ -267,6 +275,15 @@ class DatabaseHelper {
         aggregatedValue: maps[i]['totalValue'] as double
       );
     });
+  }
+
+  Future<bool> existsInExistingDatabase(Map<String, dynamic> row) async {
+    final db = await _getDatabase();
+    int? count = Sqflite.firstIntValue(await db.rawQuery(
+      'SELECT COUNT(*) FROM expenses WHERE id = ? AND millisSinceEpoch = ?',
+      [row['id'], row['millisSinceEpoch']],
+    ));
+    return count! > 0;
   }
 
 }
