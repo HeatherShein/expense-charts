@@ -63,6 +63,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
           Map<String, List<double>> totalPerCategory = ExpenseUtils.getTotalPerCategory(expenseGroups!);
           List<Indicator> indicators = getLegend(totalPerCategory.keys.toList());
           List<PieChartSectionData> sections = getSections(totalPerCategory);
+          double moneyAmountWidth = 80;
           return Scaffold(
             appBar: AppBar(
               leading: const Icon(
@@ -159,7 +160,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                               PieChartData(
                                 sections: sections,
                                 sectionsSpace: 0,
-                                centerSpaceRadius: 120,
+                                centerSpaceRadius: 100,
                               )
                             )
                           ),
@@ -170,34 +171,34 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   indicators[0],
-                                  MoneyAmount(width: 100, type: settingsState.entryType, value: sections[0].value),
+                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[0].value),
                                   indicators[1],
-                                  MoneyAmount(width: 100, type: settingsState.entryType, value: sections[1].value),
+                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[1].value),
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   indicators[2],
-                                  MoneyAmount(width: 100, type: settingsState.entryType, value: sections[2].value),
+                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[2].value),
                                   indicators[3],
-                                  MoneyAmount(width: 100, type: settingsState.entryType, value: sections[3].value),
+                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[3].value),
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   indicators[4],
-                                  MoneyAmount(width: 100, type: settingsState.entryType, value: sections[4].value),
+                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[4].value),
                                   indicators[5],
-                                  MoneyAmount(width: 100, type: settingsState.entryType, value: sections[5].value),
+                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[5].value),
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   indicators[6],
-                                  MoneyAmount(width: 100, type: settingsState.entryType, value: sections[6].value),
+                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[6].value),
                                 ],
                               ),
                             ]

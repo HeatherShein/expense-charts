@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 // ignore: must_be_immutable
 class Indicator extends StatelessWidget {
@@ -41,12 +42,15 @@ class Indicator extends StatelessWidget {
           const SizedBox(
             width: 4,
           ),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: textColor,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: textColor,
+              ),
             ),
           )
         ],

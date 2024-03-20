@@ -104,7 +104,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           getTitlesWidget: (value, meta) {
             int index = value.toInt();
             if (index >= 0 && index < sortedKeys.length && index % xtick == 0) {
-              return Text(sortedKeys[index]);
+              return Text(sortedKeys[index].substring(5));
             } else {
               return const Text('');
             }

@@ -57,6 +57,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                 children: [
                   Text(
                     widget.label.trim(),
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500

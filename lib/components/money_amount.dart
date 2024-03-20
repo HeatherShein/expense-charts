@@ -27,7 +27,7 @@ class MoneyAmount extends StatelessWidget {
         child: Text(
           "$sign ${value.toStringAsFixed(2)} €",
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
             color: Colors.black
           )
