@@ -1,6 +1,7 @@
 class Expense {
   final int? id;
-  final int millisSinceEpoch;
+  final int millisSinceEpochStart;
+  final int millisSinceEpochEnd;
   final String type;
   final String category;
   final String label;
@@ -8,7 +9,8 @@ class Expense {
 
   const Expense({
     this.id,
-    required this.millisSinceEpoch,
+    required this.millisSinceEpochStart,
+    required this.millisSinceEpochEnd,
     required this.type,
     required this.category,
     required this.label,
@@ -17,7 +19,8 @@ class Expense {
 
   Map<String, dynamic> toMap() {
     return {
-      'millisSinceEpoch': millisSinceEpoch,
+      'millisSinceEpochStart': millisSinceEpochStart,
+      'millisSinceEpochEnd': millisSinceEpochEnd,
       'type': type,
       'category': category,
       'label': label,
@@ -27,6 +30,6 @@ class Expense {
 
   @override
   String toString() {
-    return 'Expense{id: $id, millisSinceEpoch: $millisSinceEpoch, type: $type, category: $category, label: $label value: $value}';
+    return 'Expense{id: $id, millisSinceEpoch: $millisSinceEpochStart - $millisSinceEpochEnd, type: $type, category: $category, label: $label value: $value}';
   }
 }

@@ -7,9 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class ExpenseTile extends StatefulWidget {
-  const ExpenseTile({super.key, required this.millisSinceEpoch, required this.type, required this.category, required this.label, required this.value, required this.refreshCallback});
+  const ExpenseTile({super.key, required this.millisSinceEpochStart, required this.millisSinceEpochEnd, required this.type, required this.category, required this.label, required this.value, required this.refreshCallback});
 
-  final int millisSinceEpoch;
+  final int millisSinceEpochStart;
+  final int millisSinceEpochEnd;
   final String type;
   final String category;
   final String label;
@@ -23,6 +24,8 @@ class ExpenseTile extends StatefulWidget {
 class _ExpenseTileState extends State<ExpenseTile> {
   @override
   Widget build(BuildContext context) {
+    String startDate = DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpochStart));
+    String endDate = DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpochEnd));
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       textBaseline: TextBaseline.alphabetic,
@@ -64,7 +67,8 @@ class _ExpenseTileState extends State<ExpenseTile> {
                     ),
                   ),
                   Text(
-                    DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpoch)),
+                    '$startDate - $endDate',
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 10,
                     ),
@@ -80,7 +84,8 @@ class _ExpenseTileState extends State<ExpenseTile> {
             IconButton(
               onPressed: () async {
                 ExpenseForm expenseForm = await ExpenseForm.createWithExpenseId(
-                  widget.millisSinceEpoch, 
+                  widget.millisSinceEpochStart,
+                  widget.millisSinceEpochEnd, 
                   widget.type, 
                   widget.category, 
                   widget.label, 
@@ -120,7 +125,8 @@ class _ExpenseTileState extends State<ExpenseTile> {
                           onPressed: () {
                             DatabaseHelper dbhelper = DatabaseHelper();
                             dbhelper.deleteExpense(
-                              widget.millisSinceEpoch, 
+                              widget.millisSinceEpochStart,
+                              widget.millisSinceEpochEnd, 
                               widget.type, 
                               widget.category, 
                               widget.label, 

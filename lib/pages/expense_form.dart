@@ -8,7 +8,8 @@ final _formKey = GlobalKey<FormBuilderState>();
 // ignore: must_be_immutable
 class ExpenseForm extends StatelessWidget {
 
-  int millisSinceEpoch;
+  DateTime startDate;
+  DateTime endDate;
   String type;
   String category;
   String label;
@@ -17,7 +18,8 @@ class ExpenseForm extends StatelessWidget {
 
   ExpenseForm({super.key})
     :
-    millisSinceEpoch = DateTime.now().millisecondsSinceEpoch,
+    startDate = DateTime.now(),
+    endDate = DateTime.now(),
     type = "default",
     category = "default",
     label = "",
@@ -26,7 +28,8 @@ class ExpenseForm extends StatelessWidget {
 
   ExpenseForm.withValues({
     super.key,
-    required this.millisSinceEpoch,
+    required this.startDate,
+    required this.endDate,
     required this.type,
     required this.category,
     required this.label,
@@ -34,20 +37,30 @@ class ExpenseForm extends StatelessWidget {
     required this.expenseId
   });
 
-  static Future<ExpenseForm> createWithExpenseId(int millisSinceEpoch, String type, String category, String label, double value) async {
+  static Future<ExpenseForm> createWithExpenseId(int millisSinceEpochStart, int millisSinceEpochEnd, String type, String category, String label, double value) async {
     DatabaseHelper dbhelper = DatabaseHelper();
     int expenseId = await dbhelper.getIdFromValues(
-      millisSinceEpoch, 
+      millisSinceEpochStart,
+      millisSinceEpochEnd, 
       type, 
       category, 
       label, 
       value
     );
-    return ExpenseForm.withValues(millisSinceEpoch: millisSinceEpoch, type: type, category: category, label: label, value: value, expenseId: expenseId);
+    return ExpenseForm.withValues(
+      startDate: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochStart), 
+      endDate: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochEnd), 
+      type: type, 
+      category: category, 
+      label: label, 
+      value: value, 
+      expenseId: expenseId
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    endDate = endDate.difference(startDate).inMilliseconds > 0 ? endDate : startDate;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Form'),
@@ -59,14 +72,27 @@ class ExpenseForm extends StatelessWidget {
             key: _formKey,
             child: Column(
               children: [
-                FormBuilderDateTimePicker(
-                  name: "expense_date",
-                  decoration: const InputDecoration(
-                    labelText: "Date",
-                    hintText: "Pick a date",
+                Flexible(
+                  child: FormBuilderDateTimePicker(
+                    name: "start_date",
+                    decoration: const InputDecoration(
+                      labelText: "Start date",
+                      hintText: "Pick a start date",
+                    ),
+                    initialValue: startDate,
+                    initialDate: startDate,
                   ),
-                  initialValue: DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch),
-                  initialDate: DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch),
+                ),
+                Flexible(
+                  child: FormBuilderDateTimePicker(
+                    name: "end_date",
+                    decoration: const InputDecoration(
+                      labelText: "End date",
+                      hintText: "Pick an end date",
+                    ),
+                    initialValue: endDate,
+                    initialDate: endDate,
+                  ),
                 ),
                 FormBuilderDropdown(
                   name: "type", 
@@ -113,8 +139,8 @@ class ExpenseForm extends StatelessWidget {
                     ),
                     DropdownMenuItem(
                       alignment: AlignmentDirectional.center,
-                      value: "pleasure",
-                      child: Text("Pleasure")
+                      value: "leisure",
+                      child: Text("Leisure")
                     ),
                     DropdownMenuItem(
                       alignment: AlignmentDirectional.center,
@@ -162,8 +188,11 @@ class ExpenseForm extends StatelessWidget {
                     _formKey.currentState?.saveAndValidate();
                     var formValues = _formKey.currentState?.value;
     
-                    DateTime expenseDate = formValues?['expense_date'];
-                    millisSinceEpoch = expenseDate.millisecondsSinceEpoch;
+                    startDate = formValues?['start_date'];
+                    var millisSinceEpochStart = startDate.millisecondsSinceEpoch;
+                    endDate = formValues?['end_date'];
+                    var millisSinceEpochEnd = endDate.millisecondsSinceEpoch;
+                    millisSinceEpochEnd = millisSinceEpochEnd > millisSinceEpochStart ? millisSinceEpochEnd : millisSinceEpochStart;
                     type = formValues?['type'];
                     category = formValues?['category'];
                     label = formValues?['label'];
@@ -172,7 +201,14 @@ class ExpenseForm extends StatelessWidget {
                     var dbhelper = DatabaseHelper();
 
                     if (expenseId != -1) {
-                      Expense newExpense = Expense(millisSinceEpoch: millisSinceEpoch, type: type, category: category, label: label, value: value);
+                      Expense newExpense = Expense(
+                        millisSinceEpochStart: millisSinceEpochStart,
+                        millisSinceEpochEnd: millisSinceEpochEnd, 
+                        type: type, 
+                        category: category, 
+                        label: label, 
+                        value: value
+                      );
                       dbhelper.updateExpense(
                         expenseId,
                         newExpense
@@ -180,7 +216,8 @@ class ExpenseForm extends StatelessWidget {
                     } else {
                       dbhelper.insertExpense(
                         Expense(
-                          millisSinceEpoch: millisSinceEpoch,
+                          millisSinceEpochStart: millisSinceEpochStart,
+                          millisSinceEpochEnd: millisSinceEpochEnd,
                           type: type,
                           category: category,
                           label: label,
@@ -188,12 +225,11 @@ class ExpenseForm extends StatelessWidget {
                         )
                       );
                     }
-    
 
                     final scaffold = ScaffoldMessenger.of(context);
                     scaffold.showSnackBar(
                       SnackBar(
-                        content: const Text("Expense inserted successfully !"),
+                        content: const Text("Expense.s inserted successfully !"),
                         action: SnackBarAction(
                           label: "Go back",
                           onPressed: () {

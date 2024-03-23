@@ -10,6 +10,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 Future<void> exportDatabase(BuildContext context) async {
+  /**
+   * Exports the database to a selected destination.
+   */
   try {
     // Get the source database file
     final documentsDirectory = await getApplicationDocumentsDirectory();
@@ -47,9 +50,11 @@ Future<void> exportDatabase(BuildContext context) async {
 }
 
 Future<void> importDatabase(BuildContext context) async {
+  /**
+   * Import a database, merging with existing one.
+   */
   try {
     // Prompt the user to select the database file
-    debugPrint("SELECTING FILE");
     String? filePath = await FilePicker.platform.pickFiles(
       type: FileType.any,
     ).then((result) => result?.files.single.path);
@@ -77,7 +82,8 @@ Future<void> importDatabase(BuildContext context) async {
         if (!rowExists) {
           dbHelper.insertExpense(
             Expense(
-              millisSinceEpoch: row['millisSinceEpoch'],
+              millisSinceEpochStart: row['millisSinceEpochStart'],
+              millisSinceEpochEnd: row['millisSinceEpochEnd'],
               type: row['type'],
               category: row['category'],
               label: row['label'],

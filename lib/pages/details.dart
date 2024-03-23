@@ -81,7 +81,8 @@ class _DetailsPageState extends State<DetailsPage> {
                         itemBuilder: (context, index) {
                           Expense expense = expenses[index];
                           return ExpenseTile(
-                            millisSinceEpoch: expense.millisSinceEpoch, 
+                            millisSinceEpochStart: expense.millisSinceEpochStart,
+                            millisSinceEpochEnd: expense.millisSinceEpochEnd, 
                             type: expense.type, 
                             category: expense.category, 
                             label: expense.label, 
@@ -94,6 +95,7 @@ class _DetailsPageState extends State<DetailsPage> {
                   },
                 )
               ),
+              const SizedBox(height: 10.0),
               Center(
                 child: GestureDetector(
                   onTap: () async {
