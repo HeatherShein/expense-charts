@@ -1,7 +1,9 @@
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
+import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:provider/provider.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
 
@@ -15,6 +17,7 @@ class ExpenseForm extends StatelessWidget {
   String label;
   double value;
   int expenseId;
+  String currency;
 
   ExpenseForm({super.key})
     :
@@ -24,7 +27,8 @@ class ExpenseForm extends StatelessWidget {
     category = "default",
     label = "",
     value = 0,
-    expenseId = -1;
+    expenseId = -1,
+    currency = "EUR";
 
   ExpenseForm.withValues({
     super.key,
@@ -34,10 +38,19 @@ class ExpenseForm extends StatelessWidget {
     required this.category,
     required this.label,
     required this.value,
-    required this.expenseId
+    required this.expenseId,
+    required this.currency
   });
 
-  static Future<ExpenseForm> createWithExpenseId(int millisSinceEpochStart, int millisSinceEpochEnd, String type, String category, String label, double value) async {
+  static Future<ExpenseForm> createWithExpenseId(
+    int millisSinceEpochStart, 
+    int millisSinceEpochEnd, 
+    String type, 
+    String category, 
+    String label, 
+    double value,
+    String currency,
+  ) async {
     DatabaseHelper dbhelper = DatabaseHelper();
     int expenseId = await dbhelper.getIdFromValues(
       millisSinceEpochStart,
@@ -54,12 +67,14 @@ class ExpenseForm extends StatelessWidget {
       category: category, 
       label: label, 
       value: value, 
-      expenseId: expenseId
+      expenseId: expenseId,
+      currency: currency,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    SettingsProvider settingsState = context.watch<SettingsProvider>();
     endDate = endDate.difference(startDate).inMilliseconds > 0 ? endDate : startDate;
     return Scaffold(
       appBar: AppBar(
@@ -179,12 +194,32 @@ class ExpenseForm extends StatelessWidget {
                     hintText: 'Write a value',
                   ),
                   keyboardType: TextInputType.number,
-                  initialValue: value.toString(),
+                  initialValue: value.toStringAsFixed(2),
+                ),
+                FormBuilderDropdown(
+                  name: "currency", 
+                  decoration: const InputDecoration(
+                    labelText: "Currency",
+                    hintText: "Select a currency",
+                  ),
+                  initialValue: currency,
+                  items: const [
+                    DropdownMenuItem(
+                      alignment: AlignmentDirectional.center,
+                      value: "EUR",
+                      child: Text("EUR")
+                    ),
+                    DropdownMenuItem(
+                      alignment: AlignmentDirectional.center,
+                      value: "JPY",
+                      child: Text("JPY")
+                    ),
+                  ]
                 ),
                 const SizedBox(height: 10.0,),
                 MaterialButton(
                   color: Theme.of(context).colorScheme.secondary,
-                  onPressed: () {
+                  onPressed: () async {
                     _formKey.currentState?.saveAndValidate();
                     var formValues = _formKey.currentState?.value;
     
@@ -197,6 +232,13 @@ class ExpenseForm extends StatelessWidget {
                     category = formValues?['category'];
                     label = formValues?['label'];
                     value = double.parse(formValues!['value'].toString().replaceAll(",", "."));
+                    currency = formValues['currency'];
+
+                    // Convert currency if needed
+                    if (currency != settingsState.currency){
+                      // TODO : Update based on live currency rates.
+                      value = value / 164;
+                    }
     
                     var dbhelper = DatabaseHelper();
 

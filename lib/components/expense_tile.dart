@@ -7,7 +7,17 @@ import 'package:intl/intl.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class ExpenseTile extends StatefulWidget {
-  const ExpenseTile({super.key, required this.millisSinceEpochStart, required this.millisSinceEpochEnd, required this.type, required this.category, required this.label, required this.value, required this.refreshCallback});
+  const ExpenseTile({
+    super.key, 
+    required this.millisSinceEpochStart, 
+    required this.millisSinceEpochEnd, 
+    required this.type, 
+    required this.category, 
+    required this.label, 
+    required this.value, 
+    required this.currency,
+    required this.refreshCallback
+  });
 
   final int millisSinceEpochStart;
   final int millisSinceEpochEnd;
@@ -15,6 +25,7 @@ class ExpenseTile extends StatefulWidget {
   final String category;
   final String label;
   final double value;
+  final String currency;
   final VoidCallback refreshCallback;
 
   @override
@@ -26,6 +37,8 @@ class _ExpenseTileState extends State<ExpenseTile> {
   Widget build(BuildContext context) {
     String startDate = DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpochStart));
     String endDate = DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpochEnd));
+    // TODO: put a switch case to insert symbols
+    String moneyAmountCurrency = widget.currency == "EUR" ? "€" : widget.currency;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       textBaseline: TextBaseline.alphabetic,
@@ -80,7 +93,12 @@ class _ExpenseTileState extends State<ExpenseTile> {
         ),
         Row(
           children: [
-            MoneyAmount(width: 80, type: widget.type, value: widget.value),
+            MoneyAmount(
+              width: 80, 
+              type: widget.type, 
+              value: widget.value,
+              currency: moneyAmountCurrency
+            ),
             IconButton(
               onPressed: () async {
                 ExpenseForm expenseForm = await ExpenseForm.createWithExpenseId(
@@ -89,7 +107,8 @@ class _ExpenseTileState extends State<ExpenseTile> {
                   widget.type, 
                   widget.category, 
                   widget.label, 
-                  widget.value
+                  widget.value,
+                  widget.currency,
                 );
                 // ignore: use_build_context_synchronously
                 dynamic refreshData = await Navigator.push(

@@ -171,34 +171,69 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   indicators[0],
-                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[0].value),
+                                  MoneyAmount(
+                                    width: moneyAmountWidth, 
+                                    type: settingsState.entryType, 
+                                    value: sections[0].value,
+                                    currency: settingsState.currency,
+                                  ),
                                   indicators[1],
-                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[1].value),
+                                  MoneyAmount(
+                                    width: moneyAmountWidth, 
+                                    type: settingsState.entryType, 
+                                    value: sections[1].value,
+                                    currency: settingsState.currency,
+                                  ),
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   indicators[2],
-                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[2].value),
+                                  MoneyAmount(
+                                    width: moneyAmountWidth, 
+                                    type: settingsState.entryType, 
+                                    value: sections[2].value,
+                                    currency: settingsState.currency,
+                                  ),
                                   indicators[3],
-                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[3].value),
+                                  MoneyAmount(
+                                    width: moneyAmountWidth, 
+                                    type: settingsState.entryType, 
+                                    value: sections[3].value,
+                                    currency: settingsState.currency,
+                                    ),
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   indicators[4],
-                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[4].value),
+                                  MoneyAmount(
+                                    width: moneyAmountWidth, 
+                                    type: settingsState.entryType, 
+                                    value: sections[4].value,
+                                    currency: settingsState.currency,
+                                  ),
                                   indicators[5],
-                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[5].value),
+                                  MoneyAmount(
+                                    width: moneyAmountWidth, 
+                                    type: settingsState.entryType, 
+                                    value: sections[5].value,
+                                    currency: settingsState.currency,
+                                  ),
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   indicators[6],
-                                  MoneyAmount(width: moneyAmountWidth, type: settingsState.entryType, value: sections[6].value),
+                                  MoneyAmount(
+                                    width: moneyAmountWidth, 
+                                    type: settingsState.entryType, 
+                                    value: sections[6].value,
+                                    currency: settingsState.currency,
+                                  ),
                                 ],
                               ),
                             ]

@@ -87,6 +87,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             category: expense.category, 
                             label: expense.label, 
                             value: expense.value,
+                            currency: settingsState.currency,
                             refreshCallback: () { setState(() {}); },
                           );
                         }

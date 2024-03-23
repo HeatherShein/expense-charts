@@ -6,12 +6,14 @@ class MoneyAmount extends StatelessWidget {
     super.key,
     required this.width,
     required this.type,
-    required this.value
+    required this.value,
+    required this.currency,
   });
 
   final double width;
   final String type;
   final double value;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +27,7 @@ class MoneyAmount extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          "$sign ${value.toStringAsFixed(2)} €",
+          "$sign ${value.toStringAsFixed(2)} $currency",
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
