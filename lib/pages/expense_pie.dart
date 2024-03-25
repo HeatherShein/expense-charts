@@ -63,7 +63,9 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
           Map<String, List<double>> totalPerCategory = ExpenseUtils.getTotalPerCategory(expenseGroups!);
           List<Indicator> indicators = getLegend(totalPerCategory.keys.toList());
           List<PieChartSectionData> sections = getSections(totalPerCategory);
-          double moneyAmountWidth = 80;
+          double moneyAmountWidth = 90;
+          double boxRadius = 20;
+          double textFontSize = 12;
           return Scaffold(
             appBar: AppBar(
               leading: const Icon(
@@ -166,6 +168,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                           ),
                           const SizedBox(height: 16,),
                           Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -174,15 +177,19 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                   MoneyAmount(
                                     width: moneyAmountWidth, 
                                     type: settingsState.entryType, 
-                                    value: sections[0].value,
+                                    value: sections[0].value.toStringAsFixed(2),
                                     currency: settingsState.currency,
+                                    boxRadius: boxRadius,
+                                    textFontSize: textFontSize,
                                   ),
                                   indicators[1],
                                   MoneyAmount(
                                     width: moneyAmountWidth, 
                                     type: settingsState.entryType, 
-                                    value: sections[1].value,
+                                    value: sections[1].value.toStringAsFixed(2),
                                     currency: settingsState.currency,
+                                    boxRadius: boxRadius,
+                                    textFontSize: textFontSize,
                                   ),
                                 ],
                               ),
@@ -193,15 +200,19 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                   MoneyAmount(
                                     width: moneyAmountWidth, 
                                     type: settingsState.entryType, 
-                                    value: sections[2].value,
+                                    value: sections[2].value.toStringAsFixed(2),
                                     currency: settingsState.currency,
+                                    boxRadius: boxRadius,
+                                    textFontSize: textFontSize,
                                   ),
                                   indicators[3],
                                   MoneyAmount(
                                     width: moneyAmountWidth, 
                                     type: settingsState.entryType, 
-                                    value: sections[3].value,
+                                    value: sections[3].value.toStringAsFixed(2),
                                     currency: settingsState.currency,
+                                    boxRadius: boxRadius,
+                                    textFontSize: textFontSize,
                                     ),
                                 ],
                               ),
@@ -212,15 +223,19 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                   MoneyAmount(
                                     width: moneyAmountWidth, 
                                     type: settingsState.entryType, 
-                                    value: sections[4].value,
+                                    value: sections[4].value.toStringAsFixed(2),
                                     currency: settingsState.currency,
+                                    boxRadius: boxRadius,
+                                    textFontSize: textFontSize,
                                   ),
                                   indicators[5],
                                   MoneyAmount(
                                     width: moneyAmountWidth, 
                                     type: settingsState.entryType, 
-                                    value: sections[5].value,
+                                    value: sections[5].value.toStringAsFixed(2),
                                     currency: settingsState.currency,
+                                    boxRadius: boxRadius,
+                                    textFontSize: textFontSize,
                                   ),
                                 ],
                               ),
@@ -231,8 +246,19 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                   MoneyAmount(
                                     width: moneyAmountWidth, 
                                     type: settingsState.entryType, 
-                                    value: sections[6].value,
+                                    value: sections[6].value.toStringAsFixed(2),
                                     currency: settingsState.currency,
+                                    boxRadius: boxRadius,
+                                    textFontSize: textFontSize,
+                                  ),
+                                  indicators[7],
+                                  MoneyAmount(
+                                    width: moneyAmountWidth, 
+                                    type: settingsState.entryType, 
+                                    value: sections[7].value.toStringAsFixed(2),
+                                    currency: settingsState.currency,
+                                    boxRadius: boxRadius,
+                                    textFontSize: textFontSize,
                                   ),
                                 ],
                               ),

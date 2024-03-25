@@ -8,14 +8,14 @@ import 'package:provider/provider.dart';
 final _formKey = GlobalKey<FormBuilderState>();
 
 // ignore: must_be_immutable
-class ExpenseForm extends StatelessWidget {
+class ExpenseForm extends StatefulWidget {
 
   DateTime startDate;
   DateTime endDate;
   String type;
   String category;
   String label;
-  double value;
+  String value;
   int expenseId;
   String currency;
 
@@ -23,10 +23,10 @@ class ExpenseForm extends StatelessWidget {
     :
     startDate = DateTime.now(),
     endDate = DateTime.now(),
-    type = "default",
-    category = "default",
+    type = "expense",
+    category = "grocery",
     label = "",
-    value = 0,
+    value = "",
     expenseId = -1,
     currency = "EUR";
 
@@ -48,7 +48,7 @@ class ExpenseForm extends StatelessWidget {
     String type, 
     String category, 
     String label, 
-    double value,
+    String value,
     String currency,
   ) async {
     DatabaseHelper dbhelper = DatabaseHelper();
@@ -58,7 +58,7 @@ class ExpenseForm extends StatelessWidget {
       type, 
       category, 
       label, 
-      value
+      double.parse(value)
     );
     return ExpenseForm.withValues(
       startDate: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochStart), 
@@ -73,12 +73,30 @@ class ExpenseForm extends StatelessWidget {
   }
 
   @override
+  State<ExpenseForm> createState() => _ExpenseFormState();
+}
+
+class _ExpenseFormState extends State<ExpenseForm> {
+  bool isLongExpense = false;
+
+  @override
   Widget build(BuildContext context) {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
-    endDate = endDate.difference(startDate).inMilliseconds > 0 ? endDate : startDate;
+    widget.endDate = widget.endDate.difference(widget.startDate).inMilliseconds > 0 ? widget.endDate : widget.startDate;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Form'),
+        actions: [
+          Checkbox(
+            value: isLongExpense, 
+            onChanged: (bool? value) {
+              setState(() {
+                debugPrint(value.toString());
+                isLongExpense = value!;
+              });
+            }
+          )
+        ],
       ),
       body: SafeArea(
         child: Padding(
@@ -94,28 +112,29 @@ class ExpenseForm extends StatelessWidget {
                       labelText: "Start date",
                       hintText: "Pick a start date",
                     ),
-                    initialValue: startDate,
-                    initialDate: startDate,
+                    initialValue: widget.startDate,
+                    initialDate: widget.startDate,
+                    onChanged: (DateTime? newDate) { setState(() {});},
                   ),
                 ),
-                Flexible(
+                isLongExpense ? Flexible(
                   child: FormBuilderDateTimePicker(
                     name: "end_date",
                     decoration: const InputDecoration(
                       labelText: "End date",
                       hintText: "Pick an end date",
                     ),
-                    initialValue: endDate,
-                    initialDate: endDate,
+                    initialValue: widget.endDate,
+                    initialDate: widget.endDate,
                   ),
-                ),
+                ) : const SizedBox.shrink(),
                 FormBuilderDropdown(
                   name: "type", 
                   decoration: const InputDecoration(
                     labelText: "Type",
                     hintText: "Select a type",
                   ),
-                  initialValue: type,
+                  initialValue: widget.type,
                   items: const [
                     DropdownMenuItem(
                       alignment: AlignmentDirectional.center,
@@ -135,7 +154,7 @@ class ExpenseForm extends StatelessWidget {
                     labelText: "Category",
                     hintText: "Select a category",
                   ),
-                  initialValue: category,
+                  initialValue: widget.category,
                   items: const [
                     DropdownMenuItem(
                       alignment: AlignmentDirectional.center,
@@ -185,7 +204,7 @@ class ExpenseForm extends StatelessWidget {
                     labelText: "Label",
                     hintText: 'Write an expense\'s label',
                   ),
-                  initialValue: label,
+                  initialValue: widget.label,
                 ),
                 FormBuilderTextField(
                   name: "value", 
@@ -194,7 +213,7 @@ class ExpenseForm extends StatelessWidget {
                     hintText: 'Write a value',
                   ),
                   keyboardType: TextInputType.number,
-                  initialValue: value.toStringAsFixed(2),
+                  initialValue: widget.value,
                 ),
                 FormBuilderDropdown(
                   name: "currency", 
@@ -202,7 +221,7 @@ class ExpenseForm extends StatelessWidget {
                     labelText: "Currency",
                     hintText: "Select a currency",
                   ),
-                  initialValue: currency,
+                  initialValue: widget.currency,
                   items: const [
                     DropdownMenuItem(
                       alignment: AlignmentDirectional.center,
@@ -223,36 +242,36 @@ class ExpenseForm extends StatelessWidget {
                     _formKey.currentState?.saveAndValidate();
                     var formValues = _formKey.currentState?.value;
     
-                    startDate = formValues?['start_date'];
-                    var millisSinceEpochStart = startDate.millisecondsSinceEpoch;
-                    endDate = formValues?['end_date'];
-                    var millisSinceEpochEnd = endDate.millisecondsSinceEpoch;
+                    widget.startDate = formValues?['start_date'];
+                    var millisSinceEpochStart = widget.startDate.millisecondsSinceEpoch;
+                    widget.endDate = formValues?['end_date'];
+                    var millisSinceEpochEnd = widget.endDate.millisecondsSinceEpoch;
                     millisSinceEpochEnd = millisSinceEpochEnd > millisSinceEpochStart ? millisSinceEpochEnd : millisSinceEpochStart;
-                    type = formValues?['type'];
-                    category = formValues?['category'];
-                    label = formValues?['label'];
-                    value = double.parse(formValues!['value'].toString().replaceAll(",", "."));
-                    currency = formValues['currency'];
+                    widget.type = formValues?['type'];
+                    widget.category = formValues?['category'];
+                    widget.label = formValues?['label'];
+                    widget.value = formValues!['value'].replaceAll(",", ".");
+                    widget.currency = formValues['currency'];
 
                     // Convert currency if needed
-                    if (currency != settingsState.currency){
+                    if (widget.currency != settingsState.currency){
                       // TODO : Update based on live currency rates.
-                      value = value / 164;
+                      widget.value = (double.parse(widget.value) / 164).toStringAsFixed(2);
                     }
     
                     var dbhelper = DatabaseHelper();
 
-                    if (expenseId != -1) {
+                    if (widget.expenseId != -1) {
                       Expense newExpense = Expense(
                         millisSinceEpochStart: millisSinceEpochStart,
                         millisSinceEpochEnd: millisSinceEpochEnd, 
-                        type: type, 
-                        category: category, 
-                        label: label, 
-                        value: value
+                        type: widget.type, 
+                        category: widget.category, 
+                        label: widget.label, 
+                        value: double.parse(widget.value)
                       );
                       dbhelper.updateExpense(
-                        expenseId,
+                        widget.expenseId,
                         newExpense
                       );
                     } else {
@@ -260,10 +279,10 @@ class ExpenseForm extends StatelessWidget {
                         Expense(
                           millisSinceEpochStart: millisSinceEpochStart,
                           millisSinceEpochEnd: millisSinceEpochEnd,
-                          type: type,
-                          category: category,
-                          label: label,
-                          value: value,
+                          type: widget.type,
+                          category: widget.category,
+                          label: widget.label,
+                          value: double.parse(widget.value),
                         )
                       );
                     }
@@ -282,7 +301,7 @@ class ExpenseForm extends StatelessWidget {
                     );
                   },
                   child: Text(
-                    expenseId == -1 ? "Insert expense" : "Update expense"
+                    widget.expenseId == -1 ? "Insert expense" : "Update expense"
                   ),
                 ),
               ],

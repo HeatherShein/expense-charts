@@ -60,7 +60,7 @@ class ExpenseUtils {
       final int duration = expenseEndDate.difference(expenseStartDate).inDays;
       if(duration > 0) {
         // More than one day, need to distribute over the period
-        for (var j = 0; j < duration; j++) {
+        for (var j = 0; j < duration + 1; j++) {
           // Check that we don't exceed the macro end date
           DateTime expenseDayDate = expenseStartDate.add(Duration(days: j));
           if (endDate.difference(expenseDayDate).inDays < 0) {
@@ -69,7 +69,7 @@ class ExpenseUtils {
           distributedExpenses.add({
             'date': expenseDayDate,
             'category': expense['category'] as String,
-            'value': expense['value']/(duration) as double,
+            'value': expense['value']/(duration+1) as double,
           });
         }
       } else {

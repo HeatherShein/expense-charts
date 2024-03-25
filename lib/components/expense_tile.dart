@@ -24,7 +24,7 @@ class ExpenseTile extends StatefulWidget {
   final String type;
   final String category;
   final String label;
-  final double value;
+  final String value;
   final String currency;
   final VoidCallback refreshCallback;
 
@@ -39,6 +39,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
     String endDate = DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpochEnd));
     // TODO: put a switch case to insert symbols
     String moneyAmountCurrency = widget.currency == "EUR" ? "€" : widget.currency;
+    String dateString = widget.millisSinceEpochEnd == widget.millisSinceEpochStart ? startDate : '$startDate - $endDate';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       textBaseline: TextBaseline.alphabetic,
@@ -80,7 +81,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                     ),
                   ),
                   Text(
-                    '$startDate - $endDate',
+                    dateString,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 10,
@@ -97,7 +98,9 @@ class _ExpenseTileState extends State<ExpenseTile> {
               width: 80, 
               type: widget.type, 
               value: widget.value,
-              currency: moneyAmountCurrency
+              currency: moneyAmountCurrency,
+              boxRadius: 20,
+              textFontSize: 12,
             ),
             IconButton(
               onPressed: () async {
@@ -149,7 +152,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                               widget.type, 
                               widget.category, 
                               widget.label, 
-                              widget.value,
+                              double.parse(widget.value),
                             );
                             widget.refreshCallback();
                             Navigator.of(context).pop();

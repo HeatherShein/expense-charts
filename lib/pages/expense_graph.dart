@@ -104,6 +104,9 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           getTitlesWidget: (value, meta) {
             int index = value.toInt();
             if (index >= 0 && index < sortedKeys.length && index % xtick == 0) {
+              if (sortedKeys[index].length < 5) {
+                return Text(sortedKeys[index]);
+              }
               return Text(sortedKeys[index].substring(5));
             } else {
               return const Text('');
@@ -259,6 +262,9 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                                 if (newStartDate != null) {
                                   setState(() {  
                                     settingsState.startDate = newStartDate;
+                                    if (settingsState.endDate.difference(settingsState.startDate).inMilliseconds < 0) {
+                                      settingsState.endDate = newStartDate;
+                                    }
                                   });
                                 }
                               },

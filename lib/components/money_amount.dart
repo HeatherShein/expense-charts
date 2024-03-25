@@ -8,12 +8,16 @@ class MoneyAmount extends StatelessWidget {
     required this.type,
     required this.value,
     required this.currency,
+    required this.boxRadius,
+    required this.textFontSize,
   });
 
   final double width;
   final String type;
-  final double value;
+  final String value;
   final String currency;
+  final double boxRadius;
+  final double textFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +27,13 @@ class MoneyAmount extends StatelessWidget {
       padding: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
         color: type == 'expense' ? Vx.red200 : Vx.green200,
-        borderRadius: BorderRadius.circular(20.0),
+        borderRadius: BorderRadius.circular(boxRadius),
       ),
       child: Center(
         child: Text(
-          "$sign ${value.toStringAsFixed(2)} $currency",
-          style: const TextStyle(
-            fontSize: 12,
+          "$sign $value $currency",
+          style: TextStyle(
+            fontSize: textFontSize,
             fontWeight: FontWeight.bold,
             color: Colors.black
           )
