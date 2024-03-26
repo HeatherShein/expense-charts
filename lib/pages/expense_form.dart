@@ -244,7 +244,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
     
                     widget.startDate = formValues?['start_date'];
                     var millisSinceEpochStart = widget.startDate.millisecondsSinceEpoch;
-                    widget.endDate = formValues?['end_date'];
+                    widget.endDate = formValues?['end_date'] ?? widget.startDate;
                     var millisSinceEpochEnd = widget.endDate.millisecondsSinceEpoch;
                     millisSinceEpochEnd = millisSinceEpochEnd > millisSinceEpochStart ? millisSinceEpochEnd : millisSinceEpochStart;
                     widget.type = formValues?['type'];

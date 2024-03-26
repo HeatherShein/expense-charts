@@ -63,14 +63,15 @@ class ExpenseUtils {
         for (var j = 0; j < duration + 1; j++) {
           // Check that we don't exceed the macro end date
           DateTime expenseDayDate = expenseStartDate.add(Duration(days: j));
-          if (endDate.difference(expenseDayDate).inDays < 0) {
-            break;
-          } 
           distributedExpenses.add({
             'date': expenseDayDate,
             'category': expense['category'] as String,
             'value': expense['value']/(duration+1) as double,
           });
+          // Check if this expense exceeds endDate
+          if (endDate.difference(expenseDayDate).inDays == 0) {
+            break;
+          } 
         }
       } else {
         distributedExpenses.add({

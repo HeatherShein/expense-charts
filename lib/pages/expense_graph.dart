@@ -261,7 +261,15 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                                 );
                                 if (newStartDate != null) {
                                   setState(() {  
-                                    settingsState.startDate = newStartDate;
+                                    // Define to 23:59 to catch every expense this day
+                                    settingsState.startDate = DateTime(
+                                      newStartDate.year, 
+                                      newStartDate.month, 
+                                      newStartDate.day,
+                                      23,
+                                      59,
+                                      59
+                                    );
                                     if (settingsState.endDate.difference(settingsState.startDate).inMilliseconds < 0) {
                                       settingsState.endDate = newStartDate;
                                     }
@@ -282,7 +290,15 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                                   );
                                 if (newEndDate != null) {
                                   setState(() {  
-                                    settingsState.endDate = newEndDate;
+                                    // Define to 23:59 to catch every expense this day
+                                    settingsState.endDate = DateTime(
+                                      newEndDate.year, 
+                                      newEndDate.month, 
+                                      newEndDate.day,
+                                      23,
+                                      59,
+                                      59
+                                    );
                                   });
                                 }
                               },
