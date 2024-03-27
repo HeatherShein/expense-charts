@@ -330,7 +330,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [indicators[4], indicators[5], indicators[6]],
+                          children: [indicators[4], indicators[5], indicators[6], indicators[7]],
                         )
                       ]
                     ),

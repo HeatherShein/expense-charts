@@ -9,6 +9,7 @@ class SettingsProvider extends ChangeNotifier{
   String _keyFilter = '';
   int _boldIndex = -1;
   String _currency = "EUR";
+  String _expenseCategory = "all";
 
   String get entryType => _entryType;
   String get aggregateType => _aggregateType;
@@ -18,6 +19,7 @@ class SettingsProvider extends ChangeNotifier{
   String get keyFilter => _keyFilter;
   int get boldIndex => _boldIndex;
   String get currency => _currency;
+  String get expenseCategory => _expenseCategory;
 
   set entryType(String newEntryType) {
     _entryType = newEntryType;
@@ -54,5 +56,9 @@ class SettingsProvider extends ChangeNotifier{
 
   set currency (String newCurrency) {
     _currency = newCurrency;
+  }
+
+  set expenseCategory (String newExpenseCategory) {
+    _expenseCategory = newExpenseCategory;
   }
 }

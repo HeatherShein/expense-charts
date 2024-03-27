@@ -155,6 +155,83 @@ class ExpenseUtils {
     });
   }
 
+  static Future<Map<String, dynamic>> getExpenseStats(String entryType, String expenseCategory, DateTime startDate, DateTime endDate) async {
+    /**
+     * Compute expense statistics based on entryType and expenseCategory.
+     */
+    final DatabaseHelper dbhelper = DatabaseHelper(); 
+    // Query the relevant data
+    List<Map<String, dynamic>> expensesOverPeriod = await dbhelper.getExpenseOverPeriod(entryType, startDate, endDate);
+    // Distribute each expense
+    List<Map<String, dynamic>> distributedExpenses = getExpenseDistributed(startDate, endDate, expensesOverPeriod);
+    // Filter expenses
+    List<Map<String, dynamic>> filteredExpenses;
+    if (expenseCategory != "all") {
+      filteredExpenses = distributedExpenses.filter((element) => element['category'] == expenseCategory).toList();
+    } else {
+      filteredExpenses = distributedExpenses;
+    }
+    // Format date
+    for (var i = 0; i < distributedExpenses.length; i++) {
+      distributedExpenses[i]['formattedDate'] = "${distributedExpenses[i]['date'].year}-${distributedExpenses[i]['date'].month.toString().padLeft(2, '0')}-${distributedExpenses[i]['date'].day.toString().padLeft(2, '0')}";
+    }
+    Map<String, dynamic> expenseStats = {
+      "genNRows": filteredExpenses.length,
+      "genAverage": 0,
+      "genMin": double.infinity,
+      "genMax": -double.infinity,
+      "dailyNRows": 0,
+      "dailyAverage": 0,
+      "dailyMin": double.infinity,
+      "dailyMax": -double.infinity
+    };
+    // Fill in general stats
+    for (var i = 0; i < filteredExpenses.length; i++) {
+      expenseStats["genAverage"] += filteredExpenses[i]["value"];
+      if (filteredExpenses[i]["value"] < expenseStats["genMin"]) {
+        expenseStats["genMin"] = filteredExpenses[i]["value"];
+      }
+      if (filteredExpenses[i]["value"] > expenseStats["genMax"]) {
+        expenseStats["genMax"] = filteredExpenses[i]["value"];
+      }
+      // Also format date
+      filteredExpenses[i]['formattedDate'] = "${filteredExpenses[i]['date'].year}-${filteredExpenses[i]['date'].month.toString().padLeft(2, '0')}-${filteredExpenses[i]['date'].day.toString().padLeft(2, '0')}";
+    }
+    // Group expenses
+    var expensesGrouped = groupBy(filteredExpenses, (Map map) => "${map['formattedDate']}");
+    // Aggregate values per group (sum of values)
+    List<Map<String, dynamic>> expensesAggregated = [];
+    expensesGrouped.forEach((key, grouped) { 
+      double totalValue = 0.0;
+      for (var map in grouped) {
+        totalValue += map['value'];
+      }
+      expensesAggregated.add({
+        'formattedDate': grouped[0]['formattedDate'],
+        'totalValue': totalValue
+      });
+    });
+    // Fill in daily stats
+    expenseStats["dailyNRows"] = expensesAggregated.length;
+    for (var expense in expensesAggregated) {
+      expenseStats["dailyAverage"] += expense["totalValue"];
+      if (expense["totalValue"] < expenseStats["dailyMin"]) {
+        expenseStats["dailyMin"] = expense["totalValue"];
+      }
+      if (expense["totalValue"] > expenseStats["dailyMax"]) {
+        expenseStats["dailyMax"] = expense["totalValue"];
+      }
+    }
+    // Clean stats
+    expenseStats["genAverage"] /= expenseStats["genNRows"];
+    expenseStats["genMin"] = expenseStats["genMin"] == double.infinity ? null : expenseStats["genMin"];
+    expenseStats["genMax"] = expenseStats["genMax"] == -double.infinity ? null : expenseStats["genMax"];
+    expenseStats["dailyAverage"] /= expenseStats["dailyNRows"];
+    expenseStats["dailyMin"] = expenseStats["dailyMin"] == double.infinity ? null : expenseStats["dailyMin"];
+    expenseStats["dailyMax"] = expenseStats["dailyMax"] == -double.infinity ? null : expenseStats["dailyMax"];
+    return expenseStats;
+  }
+
   static Map<String, List<double>> getTotalPerCategory(List<ExpenseGroup> expenseGroups) {
     /**
      * Regroups every expense per category of an ExpenseGroup list.
