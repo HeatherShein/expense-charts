@@ -66,6 +66,11 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
           double moneyAmountWidth = 90;
           double boxRadius = 20;
           double textFontSize = 12;
+          // Compute total expense
+          double totalExpense = 0;
+          for (ExpenseGroup expenseGroup in expenseGroups) {
+            totalExpense += expenseGroup.aggregatedValue;
+          }
           return Scaffold(
             appBar: AppBar(
               leading: const Icon(
@@ -183,6 +188,14 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                 sectionsSpace: 0,
                                 centerSpaceRadius: 100,
                               )
+                            )
+                          ),
+                          const SizedBox(height: 8,),
+                          Text(
+                            "Total : ${totalExpense.toStringAsFixed(2)} ${settingsState.currency}",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w200,
                             )
                           ),
                           const SizedBox(height: 16,),

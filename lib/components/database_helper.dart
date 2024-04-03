@@ -200,13 +200,29 @@ class DatabaseHelper {
       FROM 
         expenses
       WHERE
-        datetime(millisSinceEpochStart / 1000, 'unixepoch') >= date(?)
-        AND
-        datetime(millisSinceEpochStart / 1000, 'unixepoch') < date(?, '+1 day')
+        (
+          (
+            datetime(millisSinceEpochStart / 1000, 'unixepoch') >= date(?)
+            AND
+            datetime(millisSinceEpochStart / 1000, 'unixepoch') < date(?, '+1 day')
+          )
+          OR
+          (
+            datetime(millisSinceEpochEnd / 1000, 'unixepoch') >= date(?)
+            AND
+            datetime(millisSinceEpochEnd / 1000, 'unixepoch') < date(?, '+1 day')
+          )
+          OR
+          (
+            datetime(millisSinceEpochStart / 1000, 'unixepoch') <= date(?)
+            AND
+            datetime(millisSinceEpochEnd / 1000, 'unixepoch') >= date(?, '+1 day')
+          )
+        )
         AND
         type = ?
       ''',
-      [formattedStartDate, formattedEndDate, entryType],
+      [formattedStartDate, formattedEndDate, formattedStartDate, formattedEndDate, formattedStartDate, formattedEndDate, entryType],
     );
     return maps;
   }

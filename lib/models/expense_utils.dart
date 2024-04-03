@@ -63,22 +63,26 @@ class ExpenseUtils {
         for (var j = 0; j < duration + 1; j++) {
           // Check that we don't exceed the macro end date
           DateTime expenseDayDate = expenseStartDate.add(Duration(days: j));
-          distributedExpenses.add({
-            'date': expenseDayDate,
-            'category': expense['category'] as String,
-            'value': expense['value']/(duration+1) as double,
-          });
+          if (expenseDayDate.isAfter(startDate) && expenseDayDate.isBefore((endDate))) {
+            distributedExpenses.add({
+              'date': expenseDayDate,
+              'category': expense['category'] as String,
+              'value': expense['value']/(duration+1) as double,
+            });
+          }
           // Check if this expense exceeds endDate
           if (endDate.difference(expenseDayDate).inDays == 0) {
             break;
           } 
         }
       } else {
-        distributedExpenses.add({
-          'date': expenseStartDate,
-          'category': expense['category'],
-          'value': expense['value']
-        });
+        if (expenseStartDate.isAfter(startDate) && expenseStartDate.isBefore(endDate)) {
+          distributedExpenses.add({
+            'date': expenseStartDate,
+            'category': expense['category'],
+            'value': expense['value']
+          });
+        }
       }
     }
     return distributedExpenses;
@@ -224,11 +228,11 @@ class ExpenseUtils {
     }
     // Clean stats
     expenseStats["genAverage"] /= expenseStats["genNRows"];
-    expenseStats["genMin"] = expenseStats["genMin"] == double.infinity ? null : expenseStats["genMin"];
-    expenseStats["genMax"] = expenseStats["genMax"] == -double.infinity ? null : expenseStats["genMax"];
+    expenseStats["genMin"] = expenseStats["genMin"] == double.infinity ? -1 : expenseStats["genMin"];
+    expenseStats["genMax"] = expenseStats["genMax"] == -double.infinity ? -1 : expenseStats["genMax"];
     expenseStats["dailyAverage"] /= expenseStats["dailyNRows"];
-    expenseStats["dailyMin"] = expenseStats["dailyMin"] == double.infinity ? null : expenseStats["dailyMin"];
-    expenseStats["dailyMax"] = expenseStats["dailyMax"] == -double.infinity ? null : expenseStats["dailyMax"];
+    expenseStats["dailyMin"] = expenseStats["dailyMin"] == double.infinity ? -1 : expenseStats["dailyMin"];
+    expenseStats["dailyMax"] = expenseStats["dailyMax"] == -double.infinity ? -1 : expenseStats["dailyMax"];
     return expenseStats;
   }
 
