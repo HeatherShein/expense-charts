@@ -82,7 +82,14 @@ class _ExpenseFormState extends State<ExpenseForm> {
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
-    widget.endDate = widget.endDate.difference(widget.startDate).inMilliseconds > 0 ? widget.endDate : widget.startDate;
+    bool isDifferentEndDate = widget.endDate.difference(widget.startDate).inMilliseconds > 0;
+    widget.endDate = isDifferentEndDate ? widget.endDate : widget.startDate;
+    // Check if long expense but not about to be displayed
+    if (isDifferentEndDate && !isLongExpense) {
+      setState(() {
+        isLongExpense = true;
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Form'),
@@ -91,7 +98,6 @@ class _ExpenseFormState extends State<ExpenseForm> {
             value: isLongExpense, 
             onChanged: (bool? value) {
               setState(() {
-                debugPrint(value.toString());
                 isLongExpense = value!;
               });
             }

@@ -251,7 +251,7 @@ class DatabaseHelper {
       [
         row['id'], 
         row['millisSinceEpochStart'],
-        row['millisSinceEpochEnd'],
+        row['millisSinceEpochEnd'] ?? row['millisSinceEpochStart'],
         row['type'],
         row['category'],
         row['label'],

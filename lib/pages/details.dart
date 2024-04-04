@@ -5,6 +5,7 @@ import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 
@@ -56,6 +57,24 @@ class _DetailsPageState extends State<DetailsPage> {
           IconButton(
             onPressed: () => updateExpenses(true, settingsState), 
             icon: const Icon(Icons.add)
+          ),
+          SizedBox(
+            width: 30,
+            child: TextFormField(
+              controller: TextEditingController(text: settingsState.nExpenses.toString()),
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+              ),
+              onFieldSubmitted: (value) {
+                setState(() {
+                  settingsState.nExpenses = int.parse(value);
+                });
+              },
+            ),
           ),
           const SettingsMenu(),
         ],

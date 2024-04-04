@@ -1,3 +1,4 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:expenses_charts/pages/details.dart';
 import 'package:expenses_charts/pages/expense_graph.dart';
 import 'package:expenses_charts/pages/expense_pie.dart';
@@ -32,7 +33,12 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
 
   // When first installed, the app requires permission to store data
   Future<PermissionStatus> requestStoragePermission() async {
-    var status = await Permission.storage.request();
+    final plugin = DeviceInfoPlugin();
+    final android = await plugin.androidInfo;
+
+    final status = android.version.sdkInt < 33
+        ? await Permission.storage.request()
+        : PermissionStatus.granted;
     return status;
   }
 
@@ -47,7 +53,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
           return Text('Error ${snapshot.error}');
         } else {
           PermissionStatus? status = snapshot.data;
-          if (status!.isGranted || status.isDenied) { // FIXME : should never be isDenied, but my second phone works while denying for some reasons.
+          if (status!.isGranted) { 
             // Got authorization
             return Scaffold(
               body: Center(child: _widgetOptions.elementAt(
