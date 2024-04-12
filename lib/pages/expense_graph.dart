@@ -2,13 +2,15 @@ import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/models/expense_utils.dart';
-import 'package:expenses_charts/pages/expense_form.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
+
+final _formKey = GlobalKey<FormBuilderState>();
 
 class ExpenseGraphPage extends StatefulWidget {
   const ExpenseGraphPage({super.key});
@@ -338,13 +340,21 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                     Center(
                       child: GestureDetector(
                         onTap: () async {
-                          dynamic refreshData = await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => ExpenseForm()),
+                          ExpenseUtils.showExpenseDialog(
+                            true,
+                            context, 
+                            settingsState, 
+                            DateTime.now().millisecondsSinceEpoch, 
+                            DateTime.now().millisecondsSinceEpoch, 
+                            "expense", 
+                            "grocery", 
+                            "", 
+                            "", 
+                            "EUR", 
+                            false, 
+                            _formKey, 
+                            () { setState(() {}); }
                           );
-                          if (refreshData != null && refreshData is bool && refreshData) {
-                            setState(() {});
-                          }
                         },
                         child: Container(
                           width: 60,

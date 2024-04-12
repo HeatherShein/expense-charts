@@ -1,13 +1,16 @@
 import 'package:expenses_charts/components/expense_tile.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
-import 'package:expenses_charts/pages/expense_form.dart';
+import 'package:expenses_charts/models/expense_utils.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
+
+final _formKey = GlobalKey<FormBuilderState>();
 
 class DetailsPage extends StatefulWidget {
   const DetailsPage({super.key});
@@ -119,13 +122,21 @@ class _DetailsPageState extends State<DetailsPage> {
               Center(
                 child: GestureDetector(
                   onTap: () async {
-                    dynamic refreshData = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ExpenseForm()),
+                    ExpenseUtils.showExpenseDialog(
+                      true,
+                      context, 
+                      settingsState, 
+                      DateTime.now().millisecondsSinceEpoch, 
+                      DateTime.now().millisecondsSinceEpoch, 
+                      "expense", 
+                      "grocery", 
+                      "", 
+                      "", 
+                      "EUR", 
+                      false, 
+                      _formKey, 
+                      () { setState(() {}); }
                     );
-                    if (refreshData != null && refreshData is bool && refreshData) {
-                      setState(() {});
-                    }
                   },
                   child: Container(
                     width: 60,

@@ -1,7 +1,10 @@
 import 'package:collection/collection.dart';
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/models/expense_group.dart';
+import 'package:expenses_charts/models/expenses.dart';
+import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class ExpenseUtils {
@@ -254,6 +257,261 @@ class ExpenseUtils {
       }
     }
     return totalPerCategory;
+  }
+
+  static Future<void> showExpenseDialog(
+    bool isNewExpense,
+    BuildContext context,
+    SettingsProvider settingsState,
+    int millisSinceEpochStart,
+    int millisSinceEpochEnd,
+    String type,
+    String category,
+    String label,
+    String value,
+    String currency,
+    bool isLongExpense,
+    GlobalKey<FormBuilderState> formKey,
+    VoidCallback refreshCallback
+  ) async {
+    /**
+     * Displays a Dialog window to insert/update an expense
+     * 
+     */
+    DatabaseHelper dbhelper = DatabaseHelper();
+    int expenseId;
+    if (isNewExpense) {
+      expenseId = -1;
+    } else {
+      expenseId = await dbhelper.getIdFromValues(
+        millisSinceEpochStart,
+        millisSinceEpochEnd, 
+        type, 
+        category, 
+        label, 
+        double.parse(value)
+      );
+    }
+    
+    showDialog(
+      // ignore: use_build_context_synchronously
+      context: context, 
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setStateFunction) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Text(isNewExpense ? "Create Expense" : "Edit Expense"),
+                  const Spacer(),
+                  Checkbox(
+                    value: isLongExpense, 
+                    onChanged: (bool? value) {
+                      setStateFunction(() {
+                        isLongExpense = value!;
+                      });
+                    }
+                  )
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: FormBuilder(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FormBuilderDateTimePicker(
+                        name: "start_date",
+                        decoration: const InputDecoration(
+                          labelText: "Start date",
+                          hintText: "Pick a start date",
+                        ),
+                        initialValue: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochStart),
+                        initialDate: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochStart),
+                      ),
+                      isLongExpense ? FormBuilderDateTimePicker(
+                        name: "end_date",
+                        decoration: const InputDecoration(
+                          labelText: "End date",
+                          hintText: "Pick an end date",
+                        ),
+                        initialValue: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochEnd),
+                        initialDate: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochEnd)
+                        ,
+                      ) : const SizedBox.shrink(),
+                      FormBuilderDropdown(
+                        name: "type", 
+                        decoration: const InputDecoration(
+                          labelText: "Type",
+                          hintText: "Select a type",
+                        ),
+                        initialValue: type,
+                        items: const [
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "expense",
+                            child: Text("Expense")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "income",
+                            child: Text("Income")
+                          ),
+                        ]
+                      ),
+                      FormBuilderDropdown(
+                        name: "category", 
+                        decoration: const InputDecoration(
+                          labelText: "Category",
+                          hintText: "Select a category",
+                        ),
+                        initialValue: category,
+                        items: const [
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "grocery",
+                            child: Text("Grocery")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "regular",
+                            child: Text("Regular")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "restaurant",
+                            child: Text("Restaurant")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "leisure",
+                            child: Text("Leisure")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "trip",
+                            child: Text("Trip")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "exceptional",
+                            child: Text("Exceptional")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "health",
+                            child: Text("Health")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "alcohol",
+                            child: Text("Alcohol")
+                          ),
+                        ]
+                      ),
+                      FormBuilderTextField(
+                        name: "label",
+                        decoration: const InputDecoration(
+                          labelText: "Label",
+                          hintText: 'Write an expense\'s label',
+                        ),
+                        initialValue: label,
+                      ),
+                      FormBuilderTextField(
+                        name: "value", 
+                        decoration: const InputDecoration(
+                          labelText: "Value",
+                          hintText: 'Write a value',
+                        ),
+                        keyboardType: TextInputType.number,
+                        initialValue: value,
+                      ),
+                      FormBuilderDropdown(
+                        name: "currency", 
+                        decoration: const InputDecoration(
+                          labelText: "Currency",
+                          hintText: "Select a currency",
+                        ),
+                        initialValue: currency,
+                        items: const [
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "EUR",
+                            child: Text("EUR")
+                          ),
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "JPY",
+                            child: Text("JPY")
+                          ),
+                        ]
+                      ),
+                      const SizedBox(height: 10.0,),
+                      MaterialButton(
+                        color: Theme.of(context).colorScheme.secondary,
+                        onPressed: () async {
+                          formKey.currentState?.saveAndValidate();
+                          var formValues = formKey.currentState?.value;
+                
+                          var formMillisSinceEpochStart = formValues?['start_date'].millisecondsSinceEpoch;
+                          var formEndDate = formValues?['end_date'] ?? formValues?['start_date'];
+                          var formMillisSinceEpochEnd = isLongExpense ? formEndDate.millisecondsSinceEpoch : formMillisSinceEpochStart;
+                          var formType = formValues?['type'];
+                          var formCategory = formValues?['category'];
+                          var formLabel = formValues?['label'];
+                          var formValue = formValues!['value'].replaceAll(",", ".");
+                          var formCurrency = formValues['currency'];
+                
+                          // Convert currency if needed
+                          if (formCurrency != settingsState.currency){
+                            // TODO : Update based on live currency rates.
+                            formValue = (double.parse(value) / 164).toStringAsFixed(2);
+                          }
+                        
+                          var dbhelper = DatabaseHelper();
+                
+                          // Update expense
+                          Expense newExpense = Expense(
+                            millisSinceEpochStart: formMillisSinceEpochStart,
+                            millisSinceEpochEnd: formMillisSinceEpochEnd, 
+                            type: formType, 
+                            category: formCategory, 
+                            label: formLabel, 
+                            value: double.parse(formValue)
+                          );
+                
+                          if (isNewExpense) {
+                            dbhelper.insertExpense(
+                              newExpense
+                            );
+                          } else {
+                            dbhelper.updateExpense(
+                              expenseId,
+                              newExpense
+                            );
+                          }
+                          final scaffold = ScaffoldMessenger.of(context);
+                          scaffold.showSnackBar(
+                            SnackBar(
+                              content: Text(isNewExpense ? "Expense inserted successfully" : "Expense updated successfully !"),
+                            )
+                          );
+                          refreshCallback();
+                          Navigator.pop(context, true);
+                        },
+                        child: Text(
+                          isNewExpense ? "Insert expense" : "Update expense"
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+        );
+      }
+    );
   }
 
 }
