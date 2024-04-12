@@ -158,15 +158,21 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<Expense>> getLatestExpenses(int n) async {
+  Future<List<Expense>> getLatestExpenses(int n, String category, String label) async {
     /**
      * Fetchs n latest expenses.
+     * If provided, filters by category and / or label
      */
     final db = await _getDatabase();
-    final List<Map<String, dynamic>> maps = await db.query(
+    final List<Map<String, dynamic>> maps;
+    String whereClause = category != 'all' ? "category = ? AND label LIKE ?" : "label LIKE ?";
+    List<dynamic> whereArgs = category != 'all' ? [category, '%${label.toLowerCase()}%'] : ['%${label.toLowerCase()}%'];
+    maps = await db.query(
       'expenses',
+      where: whereClause,
+      whereArgs: whereArgs,
       orderBy: "millisSinceEpochStart DESC",
-      limit: n
+      limit: n,
     );
     return List.generate(maps.length, (i) {
       return Expense(

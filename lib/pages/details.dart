@@ -5,6 +5,7 @@ import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
@@ -19,32 +20,42 @@ class DetailsPage extends StatefulWidget {
   State<DetailsPage> createState() => _DetailsPageState();
 }
 
-class _DetailsPageState extends State<DetailsPage> {
+class _DetailsPageState extends State<DetailsPage> with AutomaticKeepAliveClientMixin {
   late DatabaseHelper dbhelper;
+  late SettingsProvider settingsState;
+  late ScrollController _controller;
 
   @override
   void initState() {
     super.initState();
     dbhelper = DatabaseHelper();
+    _controller = ScrollController();
+    _controller.addListener(() { _scrollListener(); });
   }
 
-  void updateExpenses(bool increase, SettingsProvider settingsState) {
-    setState(() {
-      if (increase) {
-        settingsState.nExpenses += 13;
-      } else {
-        if (settingsState.nExpenses > 13) {
-          settingsState.nExpenses -= 13;
-        } else {
-          settingsState.nExpenses = 1;
+  void _scrollListener() {
+    if (
+      _controller.hasClients &&
+      _controller.position.pixels == _controller.position.maxScrollExtent
+    ) {
+      // Reached the end of list, load more data
+      setState(() {
+        settingsState.nExpenses += 50;
+      });
+
+      // Reach the last item viewed
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (_controller.hasClients) {
+          _controller.jumpTo(_controller.position.maxScrollExtent);
         }
-      }
-    });
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    SettingsProvider settingsState = context.watch<SettingsProvider>();
+    super.build(context);
+    settingsState = context.watch<SettingsProvider>();
     return Scaffold(
       appBar: AppBar(
         leading: const Icon(
@@ -53,14 +64,6 @@ class _DetailsPageState extends State<DetailsPage> {
         ),
         title: const Text('Details'),
         actions: [
-          IconButton(
-            onPressed: () => updateExpenses(false, settingsState), 
-            icon: const Icon(Icons.remove)
-          ),
-          IconButton(
-            onPressed: () => updateExpenses(true, settingsState), 
-            icon: const Icon(Icons.add)
-          ),
           SizedBox(
             width: 30,
             child: TextFormField(
@@ -87,10 +90,81 @@ class _DetailsPageState extends State<DetailsPage> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    DropdownButton<String>(
+                      value: settingsState.expenseCategory,
+                      items: const <DropdownMenuItem<String>>[
+                        DropdownMenuItem<String>(
+                          value: 'all',
+                          child: Text('All')
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'alcohol',
+                          child: Text('Alcohol')
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'exceptional',
+                          child: Text('Exceptional')
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'grocery',
+                          child: Text('Grocery')
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'health',
+                          child: Text('Health')
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'leisure',
+                          child: Text('Leisure')
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'regular',
+                          child: Text('Regular')
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'restaurant',
+                          child: Text('Restaurant')
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'trip',
+                          child: Text('Trip')
+                        ),
+                      ], 
+                      onChanged: (String? value) {
+                        setState(() {
+                          settingsState.expenseCategory = value!;
+                        });
+                      }
+                    ),
+                    const SizedBox(width: 20,),
+                    SizedBox(
+                      width: 200,
+                      child: TextField(
+                        onChanged: (String? value) {
+                          settingsState.expenseLabel = value!;
+                        },
+                        decoration: const InputDecoration(
+                          hintText: 'Search ...',
+                          border: InputBorder.none
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height:10.0),
               Flexible(
                 child: FutureBuilder<List<Expense>>(
-                  future: dbhelper.getLatestExpenses(settingsState.nExpenses),
+                  future: dbhelper.getLatestExpenses(
+                    settingsState.nExpenses, 
+                    settingsState.expenseCategory,
+                    settingsState.expenseLabel
+                  ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
@@ -99,10 +173,12 @@ class _DetailsPageState extends State<DetailsPage> {
                     } else {
                       List<Expense> expenses = snapshot.data!;
                       return ListView.builder(
+                        controller: _controller,
                         itemCount: snapshot.data?.length,
                         itemBuilder: (context, index) {
                           Expense expense = expenses[index];
                           return ExpenseTile(
+                            index: index+1,
                             millisSinceEpochStart: expense.millisSinceEpochStart,
                             millisSinceEpochEnd: expense.millisSinceEpochEnd, 
                             type: expense.type, 
@@ -112,7 +188,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             currency: settingsState.currency,
                             refreshCallback: () { setState(() {}); },
                           );
-                        }
+                        },
                       );       
                     }
                   },
@@ -160,4 +236,7 @@ class _DetailsPageState extends State<DetailsPage> {
       )
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }

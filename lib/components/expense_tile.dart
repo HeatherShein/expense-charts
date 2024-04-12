@@ -13,6 +13,7 @@ final _formKey = GlobalKey<FormBuilderState>();
 class ExpenseTile extends StatefulWidget {
   const ExpenseTile({
     super.key, 
+    required this.index,
     required this.millisSinceEpochStart, 
     required this.millisSinceEpochEnd, 
     required this.type, 
@@ -23,6 +24,7 @@ class ExpenseTile extends StatefulWidget {
     required this.refreshCallback
   });
 
+  final int index;
   final int millisSinceEpochStart;
   final int millisSinceEpochEnd;
   final String type;
@@ -71,7 +73,21 @@ class _ExpenseTileState extends State<ExpenseTile> {
         crossAxisAlignment: CrossAxisAlignment.center,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          const SizedBox(width: 8.0,),
+          Container(
+            height: 35,
+            width: 30,
+            padding: const EdgeInsets.all(4.0),
+            child: Center(
+              child: Text(
+                widget.index.toString(),
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black
+                )
+              ),
+            ),
+          ),
           Container(
             height: 35,
             width: 90,

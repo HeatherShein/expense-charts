@@ -18,8 +18,6 @@ class ExpenseStatsPage extends StatefulWidget {
 }
 
 class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
-  String graphTitle = 'Expenses stats';
-
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
@@ -51,14 +49,6 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                     Expanded(
                       child: Column(
                         children: [
-                          Text(
-                            graphTitle,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            )
-                          ),
-                          const SizedBox(height: 16,),
                           Column(
                             children: [
                               Row(
@@ -79,11 +69,6 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                                     onChanged: (String? value) {
                                       setState(() {
                                         settingsState.entryType = value!;
-                                        if(settingsState.entryType == 'expense') {
-                                          graphTitle = "Expenses per period";
-                                        } else {
-                                          graphTitle = "Incomes per period";
-                                        }
                                       });
                                     }
                                   ),
@@ -210,6 +195,7 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                             min: expenseStats["genMin"].toStringAsFixed(2), 
                             max: expenseStats["genMax"].toStringAsFixed(2)
                           ),
+                          const SizedBox(height: 16.0),
                           const Text(
                             "Daily",
                             style: TextStyle(
@@ -223,7 +209,7 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                             min: expenseStats["dailyMin"].toStringAsFixed(2), 
                             max: expenseStats["dailyMax"].toStringAsFixed(2)
                           ),
-                          const SizedBox(height: 5,),
+                          const SizedBox(height: 16,),
                           Center(
                             child: GestureDetector(
                               onTap: () async {

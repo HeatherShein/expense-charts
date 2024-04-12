@@ -20,8 +20,6 @@ class ExpenseGraphPage extends StatefulWidget {
 }
 
 class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
-  String graphTitle = 'Expenses per period';
-
   List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups, {String keyFilter = ''}) {
     Map<String, List<ExpenseGroup>> groupedByAggregate = {};
 
@@ -43,11 +41,14 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
       var groupAggregate = sortedKeys[i];
       var groupAggregateValues = groupedByAggregate[groupAggregate];
 
+      // Sort by category
+      groupAggregateValues?.sort((a, b) => a.category.compareTo(b.category));
+
       List<BarChartRodData> barRods = [];
       double totalValue = 0.0;
 
       for (var values in groupAggregateValues!) {
-        double aggregatedValue = double.parse(values.aggregatedValue.toStringAsFixed(2));
+        double aggregatedValue = double.parse(values.aggregatedValue.toDoubleStringAsFixed());
         barRods.add(
           BarChartRodData(
             fromY: totalValue,
@@ -57,6 +58,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           ),
         );
         totalValue += aggregatedValue;
+        totalValue = double.parse(totalValue.toDoubleStringAsFixed());
       }
 
       return BarChartGroupData(
@@ -183,14 +185,6 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
-                    Text(
-                      graphTitle,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      )
-                    ),
-                    const SizedBox(height: 16,),
                     Column(
                       children: [
                         Row(
@@ -211,11 +205,6 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                               onChanged: (String? value) {
                                 setState(() {
                                   settingsState.entryType = value!;
-                                  if(settingsState.entryType == 'expense') {
-                                    graphTitle = "Expenses per period";
-                                  } else {
-                                    graphTitle = "Incomes per period";
-                                  }
                                 });
                               }
                             ),

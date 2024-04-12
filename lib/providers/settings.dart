@@ -5,11 +5,12 @@ class SettingsProvider extends ChangeNotifier{
   String _aggregateType = "day";
   DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
   DateTime _endDate = DateTime.now();
-  int _nExpenses = 13;
+  int _nExpenses = 50;
   String _keyFilter = '';
   int _boldIndex = -1;
   String _currency = "EUR";
   String _expenseCategory = "all";
+  String _expenseLabel = "";
 
   String get entryType => _entryType;
   String get aggregateType => _aggregateType;
@@ -20,6 +21,7 @@ class SettingsProvider extends ChangeNotifier{
   int get boldIndex => _boldIndex;
   String get currency => _currency;
   String get expenseCategory => _expenseCategory;
+  String get expenseLabel => _expenseLabel;
 
   set entryType(String newEntryType) {
     _entryType = newEntryType;
@@ -48,17 +50,26 @@ class SettingsProvider extends ChangeNotifier{
 
   set keyFilter (String newKeyFilter) {
     _keyFilter = newKeyFilter;
+    notifyListeners();
   }
 
   set boldIndex (int newBoldIndex) {
     _boldIndex = newBoldIndex;
+    notifyListeners();
   }
 
   set currency (String newCurrency) {
     _currency = newCurrency;
+    notifyListeners();
   }
 
   set expenseCategory (String newExpenseCategory) {
     _expenseCategory = newExpenseCategory;
+    notifyListeners();
+  }
+
+  set expenseLabel (String newExpenseLabel) {
+    _expenseLabel = newExpenseLabel;
+    notifyListeners();
   }
 }

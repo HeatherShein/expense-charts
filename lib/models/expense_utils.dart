@@ -76,7 +76,7 @@ class ExpenseUtils {
           // Check if this expense exceeds endDate
           if (endDate.difference(expenseDayDate).inDays == 0) {
             break;
-          } 
+          }
         }
       } else {
         if (expenseStartDate.isAfter(startDate) && expenseStartDate.isBefore(endDate)) {

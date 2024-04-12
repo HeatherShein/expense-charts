@@ -21,8 +21,6 @@ class ExpensePiePage extends StatefulWidget {
 }
 
 class _ExpensePiePageState extends State<ExpensePiePage> {
-  String graphTitle = 'Total expenses';
-
   List<PieChartSectionData> getSections(Map<String, List<double>> totalPerCategory) {
     List<PieChartSectionData> sections = totalPerCategory.keys.map((category) {
       double total = totalPerCategory[category]!.reduce((value, element) => value + element);
@@ -92,14 +90,6 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                     Expanded(
                       child: Column(
                         children: [
-                          Text(
-                            graphTitle,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            )
-                          ),
-                          const SizedBox(height: 16,),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -118,11 +108,6 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                 onChanged: (String? value) {
                                   setState(() {
                                     settingsState.entryType = value!;
-                                    if(settingsState.entryType == 'expense') {
-                                      graphTitle = "Total expenses";
-                                    } else {
-                                      graphTitle = "Total incomes";
-                                    }
                                   });
                                 }
                               ),
@@ -188,7 +173,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                               PieChartData(
                                 sections: sections,
                                 sectionsSpace: 0,
-                                centerSpaceRadius: 100,
+                                centerSpaceRadius: 80,
                               )
                             )
                           ),
@@ -202,101 +187,26 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                           ),
                           const SizedBox(height: 16,),
                           Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  indicators[0],
-                                  MoneyAmount(
-                                    width: moneyAmountWidth, 
-                                    type: settingsState.entryType, 
-                                    value: sections[0].value.toStringAsFixed(2),
-                                    currency: settingsState.currency,
-                                    boxRadius: boxRadius,
-                                    textFontSize: textFontSize,
-                                  ),
-                                  indicators[1],
-                                  MoneyAmount(
-                                    width: moneyAmountWidth, 
-                                    type: settingsState.entryType, 
-                                    value: sections[1].value.toStringAsFixed(2),
-                                    currency: settingsState.currency,
-                                    boxRadius: boxRadius,
-                                    textFontSize: textFontSize,
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  indicators[2],
-                                  MoneyAmount(
-                                    width: moneyAmountWidth, 
-                                    type: settingsState.entryType, 
-                                    value: sections[2].value.toStringAsFixed(2),
-                                    currency: settingsState.currency,
-                                    boxRadius: boxRadius,
-                                    textFontSize: textFontSize,
-                                  ),
-                                  indicators[3],
-                                  MoneyAmount(
-                                    width: moneyAmountWidth, 
-                                    type: settingsState.entryType, 
-                                    value: sections[3].value.toStringAsFixed(2),
-                                    currency: settingsState.currency,
-                                    boxRadius: boxRadius,
-                                    textFontSize: textFontSize,
-                                    ),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  indicators[4],
-                                  MoneyAmount(
-                                    width: moneyAmountWidth, 
-                                    type: settingsState.entryType, 
-                                    value: sections[4].value.toStringAsFixed(2),
-                                    currency: settingsState.currency,
-                                    boxRadius: boxRadius,
-                                    textFontSize: textFontSize,
-                                  ),
-                                  indicators[5],
-                                  MoneyAmount(
-                                    width: moneyAmountWidth, 
-                                    type: settingsState.entryType, 
-                                    value: sections[5].value.toStringAsFixed(2),
-                                    currency: settingsState.currency,
-                                    boxRadius: boxRadius,
-                                    textFontSize: textFontSize,
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  indicators[6],
-                                  MoneyAmount(
-                                    width: moneyAmountWidth, 
-                                    type: settingsState.entryType, 
-                                    value: sections[6].value.toStringAsFixed(2),
-                                    currency: settingsState.currency,
-                                    boxRadius: boxRadius,
-                                    textFontSize: textFontSize,
-                                  ),
-                                  indicators[7],
-                                  MoneyAmount(
-                                    width: moneyAmountWidth, 
-                                    type: settingsState.entryType, 
-                                    value: sections[7].value.toStringAsFixed(2),
-                                    currency: settingsState.currency,
-                                    boxRadius: boxRadius,
-                                    textFontSize: textFontSize,
-                                  ),
-                                ],
-                              ),
-                            ]
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              indicators.length, (i) {
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    indicators[i],
+                                    const Spacer(),
+                                    MoneyAmount(
+                                      width: moneyAmountWidth, 
+                                      type: settingsState.entryType, 
+                                      value: sections[i].value.toStringAsFixed(2), 
+                                      currency: settingsState.currency, 
+                                      boxRadius: boxRadius, 
+                                      textFontSize: textFontSize
+                                    )
+                                  ],
+                                );
+                              }
+                            )
                           ),
                           const SizedBox(height: 25,),
                           Center(
