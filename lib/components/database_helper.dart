@@ -158,6 +158,32 @@ class DatabaseHelper {
     });
   }
 
+  Future<List<Expense>> getExpensesWithDates(DateTime startDate, DateTime endDate) async {
+    /**
+     * Query every expenses with date range.
+     */
+    final db = await _getDatabase();
+    // Reformat dates
+    String formattedStartDate = startDate.toIso8601String();
+    String formattedEndDate = endDate.toIso8601String();
+    final List<Map<String, dynamic>> maps = await db.query(
+      'expenses',
+      where: "datetime(millisSinceEpochStart / 1000, 'unixepoch') >= date(?) AND datetime(millisSinceEpochEnd / 1000, 'unixepoch') <= date(?)",
+      whereArgs: [formattedStartDate, formattedEndDate]
+    );
+    return List.generate(maps.length, (i) {
+      return Expense(
+        id: maps[i]['id'] as int, 
+        millisSinceEpochStart: maps[i]['millisSinceEpochStart'] as int, 
+        millisSinceEpochEnd: maps[i]['millisSinceEpochEnd'] as int, 
+        type: maps[i]['type'] as String, 
+        category: maps[i]['category'] as String,
+        label: maps[i]['label'] as String,
+        value: maps[i]['value'] as double,
+      );
+    });
+  }
+
   Future<List<Expense>> getLatestExpenses(int n, String category, String label) async {
     /**
      * Fetchs n latest expenses.

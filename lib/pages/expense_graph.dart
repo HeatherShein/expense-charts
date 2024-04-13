@@ -52,7 +52,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
         barRods.add(
           BarChartRodData(
             fromY: totalValue,
-            toY: totalValue + aggregatedValue,
+            toY: double.parse((totalValue + aggregatedValue).toDoubleStringAsFixed()),
             color: ExpenseUtils.getColorForCategory(values.category),
             width: 8,
           ),

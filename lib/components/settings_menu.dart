@@ -4,18 +4,43 @@ import 'package:cr_file_saver/file_saver.dart';
 import 'package:csv/csv.dart';
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
+import 'package:expenses_charts/providers/settings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
+
+final _formKey = GlobalKey<FormBuilderState>();
 
 Future<void> exportDatabase(BuildContext context) async {
   /**
    * Exports the database to a selected destination.
    */
+
+  // Show loading dialog
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const AlertDialog(
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16,),
+            Text("Exporting database ...")
+          ],
+        ),
+      );
+    }
+  );
+
   try {
     // Get the source database file
     final documentsDirectory = await getApplicationDocumentsDirectory();
@@ -36,6 +61,10 @@ Future<void> exportDatabase(BuildContext context) async {
       destinationFileName: destinationPath,
     );
 
+    // Dismiss loading dialog
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
+
     // Show a success message
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
@@ -45,6 +74,9 @@ Future<void> exportDatabase(BuildContext context) async {
       )
     );
   } on PlatformException catch (e) {
+    // Dismiss loading dialog
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
@@ -59,6 +91,26 @@ Future<void> importDatabase(BuildContext context) async {
   /**
    * Import a database, merging with existing one.
    */
+
+  // Show loading dialog
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const AlertDialog(
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16,),
+            Text("Importing database ...")
+          ],
+        ),
+      );
+    }
+  );
+
   try {
     // Prompt the user to select the database file
     String? filePath = await FilePicker.platform.pickFiles(
@@ -101,6 +153,10 @@ Future<void> importDatabase(BuildContext context) async {
       }
     });
 
+    // Dismiss loading dialog
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
+
     // Show a success message
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
@@ -110,6 +166,9 @@ Future<void> importDatabase(BuildContext context) async {
       )
     );
   } catch (e) {
+    // Dismiss loading dialog
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
@@ -125,14 +184,98 @@ String _generateCsvRow(Iterable<dynamic> values) {
   return '${values.map((value) => '"$value"').join(',')}\n';
 }
 
-Future<void> exportCsv(BuildContext context) async {
+Future<void> preExportCsv(BuildContext context) async {
+  /**
+   * Asks the user for date range before exporting csv.
+   */
+
+  DateTime startDate;
+  DateTime endDate;
+
+  // Show loading dialog
+  showDialog(
+    context: context, 
+    builder: (BuildContext context) {
+      SettingsProvider settingsState = context.watch<SettingsProvider>();
+      return AlertDialog(
+        title: const Text("Select date range"),
+        content: FormBuilder(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FormBuilderDateTimePicker(
+                name: "start_date",
+                decoration: const InputDecoration(
+                  labelText: "Start date",
+                  hintText: "Pick a start date",
+                ),
+                initialValue: settingsState.startDate,
+                initialDate: settingsState.startDate,
+              ),
+              FormBuilderDateTimePicker(
+                name: "end_date",
+                decoration: const InputDecoration(
+                  labelText: "End date",
+                  hintText: "Pick an end date",
+                ),
+                initialValue: settingsState.endDate,
+                initialDate: settingsState.endDate,
+              ),
+              const SizedBox(height: 10.0,),
+              MaterialButton(
+                color: Theme.of(context).colorScheme.secondary,
+                onPressed: () async {
+                  _formKey.currentState?.saveAndValidate();
+                  var formValues = _formKey.currentState?.value;
+                  startDate = formValues?['start_date'];
+                  endDate = formValues?['end_date'];
+                  exportCsv(context, startDate, endDate);
+                  // Dismiss loading dialog
+                  // ignore: use_build_context_synchronously
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  "Confirm dates"
+                ),
+              )
+            ],
+          )
+        ),
+      );
+    }
+  );
+}
+
+Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDate) async {
   /**
    * Exports the database to a selected destination as a CSV.
    */
+
+  // Show loading dialog
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const AlertDialog(
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16,),
+            Text("Exporting database as CSV ...")
+          ],
+        ),
+      );
+    }
+  );
+
   try {
     DatabaseHelper dbHelper = DatabaseHelper();
     // Get expenses
-    List<Expense> expenses = await dbHelper.expenses();
+    List<Expense> expenses = await dbHelper.getExpensesWithDates(startDate, endDate);
 
     // Prompt the user to select the destination directory
     String? destinationDir = await FilePicker.platform.getDirectoryPath();
@@ -172,6 +315,10 @@ Future<void> exportCsv(BuildContext context) async {
     // Close file
     sink.close();
 
+    // Dismiss loading dialog
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
+
     // Show a success message
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
@@ -181,6 +328,9 @@ Future<void> exportCsv(BuildContext context) async {
       )
     );
   } catch (e) {
+    // Dismiss loading dialog
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
@@ -195,6 +345,26 @@ Future<void> importCsv(BuildContext context) async {
   /**
    * Import a database as a csv, merging with existing one.
    */
+
+  // Show loading dialog
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const AlertDialog(
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16,),
+            Text("Importing database as CSV ...")
+          ],
+        ),
+      );
+    }
+  );
+
   try {
     DatabaseHelper dbHelper = DatabaseHelper();
     // Prompt the user to select the database file
@@ -250,6 +420,10 @@ Future<void> importCsv(BuildContext context) async {
       }
     }
 
+    // Dismiss loading dialog
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
+
     // Show a success message
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
@@ -259,6 +433,9 @@ Future<void> importCsv(BuildContext context) async {
       )
     );
   } catch (e) {
+    // Dismiss loading dialog
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
@@ -303,7 +480,7 @@ class SettingsMenu extends StatelessWidget {
           case 'import_database':
             importDatabase(context);
           case 'export_csv':
-            exportCsv(context);
+            preExportCsv(context);
             break;
           case 'import_csv':
             importCsv(context);

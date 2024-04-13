@@ -465,7 +465,7 @@ class ExpenseUtils {
                           // Convert currency if needed
                           if (formCurrency != settingsState.currency){
                             // TODO : Update based on live currency rates.
-                            formValue = (double.parse(value) / 164).toStringAsFixed(2);
+                            formValue = (double.parse(formValue) / 164).toStringAsFixed(2);
                           }
                         
                           var dbhelper = DatabaseHelper();
