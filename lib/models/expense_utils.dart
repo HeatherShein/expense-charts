@@ -5,6 +5,8 @@ import 'package:expenses_charts/models/expenses.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class ExpenseUtils {
@@ -262,7 +264,6 @@ class ExpenseUtils {
   static Future<void> showExpenseDialog(
     bool isNewExpense,
     BuildContext context,
-    SettingsProvider settingsState,
     int millisSinceEpochStart,
     int millisSinceEpochEnd,
     String type,
@@ -297,6 +298,7 @@ class ExpenseUtils {
       // ignore: use_build_context_synchronously
       context: context, 
       builder: (BuildContext context) {
+        SettingsProvider settingsState = context.watch<SettingsProvider>();
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setStateFunction) {
             return AlertDialog(
@@ -322,6 +324,8 @@ class ExpenseUtils {
                     children: [
                       FormBuilderDateTimePicker(
                         name: "start_date",
+                        inputType: InputType.date,
+                        format: DateFormat('d/M/y'),
                         decoration: const InputDecoration(
                           labelText: "Start date",
                           hintText: "Pick a start date",
@@ -331,6 +335,8 @@ class ExpenseUtils {
                       ),
                       isLongExpense ? FormBuilderDateTimePicker(
                         name: "end_date",
+                        inputType: InputType.date,
+                        format: DateFormat('d/M/y'),
                         decoration: const InputDecoration(
                           labelText: "End date",
                           hintText: "Pick an end date",
@@ -453,9 +459,10 @@ class ExpenseUtils {
                           formKey.currentState?.saveAndValidate();
                           var formValues = formKey.currentState?.value;
                 
-                          var formMillisSinceEpochStart = formValues?['start_date'].millisecondsSinceEpoch;
+                          // TODO: fix 9 hours offset.
+                          var formMillisSinceEpochStart = formValues?['start_date'].millisecondsSinceEpoch + (10*3600*1000);
                           var formEndDate = formValues?['end_date'] ?? formValues?['start_date'];
-                          var formMillisSinceEpochEnd = isLongExpense ? formEndDate.millisecondsSinceEpoch : formMillisSinceEpochStart;
+                          var formMillisSinceEpochEnd = isLongExpense ? formEndDate.millisecondsSinceEpoch + (10*3600*1000) : formMillisSinceEpochStart;
                           var formType = formValues?['type'];
                           var formCategory = formValues?['category'];
                           var formLabel = formValues?['label'];

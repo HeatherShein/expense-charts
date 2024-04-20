@@ -1,4 +1,5 @@
 import 'package:expenses_charts/models/expenses.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -256,6 +257,7 @@ class DatabaseHelper {
       ''',
       [formattedStartDate, formattedEndDate, formattedStartDate, formattedEndDate, formattedStartDate, formattedEndDate, entryType],
     );
+    debugPrint(maps.toString());
     return maps;
   }
 
@@ -263,6 +265,8 @@ class DatabaseHelper {
     /**
      * Checks if row already exists in database.
      * Must have the exact same values.
+    debugPrint(startDate.toString());
+    debugPrint(formattedStartDate.toString());
      */
     final db = await _getDatabase();
     int? count = Sqflite.firstIntValue(await db.rawQuery(

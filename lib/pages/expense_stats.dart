@@ -136,17 +136,21 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                                       );
                                       if (newStartDate != null) {
                                         setState(() {  
-                                          // Define to 23:59 to catch every expense this day
                                           settingsState.startDate = DateTime(
                                             newStartDate.year, 
                                             newStartDate.month, 
-                                            newStartDate.day,
-                                            23,
-                                            59,
-                                            59
+                                            newStartDate.day
                                           );
                                           if (settingsState.endDate.difference(settingsState.startDate).inMilliseconds < 0) {
-                                            settingsState.endDate = newStartDate;
+                                            // To catch every expense that day
+                                            settingsState.endDate = DateTime(
+                                              newStartDate.year,
+                                              newStartDate.month,
+                                              newStartDate.day,
+                                              23,
+                                              59,
+                                              59
+                                            );
                                           }
                                         });
                                       }
@@ -209,42 +213,6 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                             min: expenseStats["dailyMin"].toStringAsFixed(2), 
                             max: expenseStats["dailyMax"].toStringAsFixed(2)
                           ),
-                          const SizedBox(height: 16,),
-                          Center(
-                            child: GestureDetector(
-                              onTap: () async {
-                                ExpenseUtils.showExpenseDialog(
-                                  true,
-                                  context, 
-                                  settingsState, 
-                                  DateTime.now().millisecondsSinceEpoch, 
-                                  DateTime.now().millisecondsSinceEpoch, 
-                                  "expense", 
-                                  "grocery", 
-                                  "", 
-                                  "", 
-                                  "EUR", 
-                                  false, 
-                                  _formKey, 
-                                  () { setState(() {}); }
-                                );
-                              },
-                              child: Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  color: Colors.blue,
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: const Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                  size: 30
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10.0),
                         ]
                       )
                     )

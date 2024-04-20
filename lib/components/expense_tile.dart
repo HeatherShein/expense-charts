@@ -1,11 +1,9 @@
 import 'package:expenses_charts/components/database_helper.dart';
 import 'package:expenses_charts/components/money_amount.dart';
 import 'package:expenses_charts/models/expense_utils.dart';
-import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
@@ -41,7 +39,6 @@ class ExpenseTile extends StatefulWidget {
 class _ExpenseTileState extends State<ExpenseTile> {
   @override
   Widget build(BuildContext context) {
-    SettingsProvider settingsState = context.watch<SettingsProvider>();
     DateTime dateTimeStartDate = DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpochStart);
     DateTime dateTimeEndDate = DateTime.fromMillisecondsSinceEpoch(widget.millisSinceEpochEnd);
     String startDate = DateFormat('yyyy-MM-dd').format(dateTimeStartDate);
@@ -56,7 +53,6 @@ class _ExpenseTileState extends State<ExpenseTile> {
         ExpenseUtils.showExpenseDialog(
           false,
           context,
-          settingsState,
           widget.millisSinceEpochStart,
           widget.millisSinceEpochEnd,
           widget.type,

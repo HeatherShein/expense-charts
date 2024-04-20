@@ -1,10 +1,14 @@
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:expenses_charts/models/expense_utils.dart';
 import 'package:expenses_charts/pages/details.dart';
 import 'package:expenses_charts/pages/expense_graph.dart';
 import 'package:expenses_charts/pages/expense_pie.dart';
 import 'package:expenses_charts/pages/expense_stats.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+final _formKey = GlobalKey<FormBuilderState>();
 
 class WidgetTreePage extends StatefulWidget {
   const WidgetTreePage({super.key});
@@ -21,14 +25,33 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
   static const List<Widget> _widgetOptions = <Widget>[
     ExpenseGraphPage(),
     ExpensePiePage(),
+    Placeholder(),
     ExpenseStatsPage(),
     DetailsPage(),
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == 2) {
+      // Don't set state, just click the button
+      ExpenseUtils.showExpenseDialog(
+        true,
+        context, 
+        DateTime.now().millisecondsSinceEpoch, 
+        DateTime.now().millisecondsSinceEpoch, 
+        "expense", 
+        "grocery", 
+        "", 
+        "", 
+        "EUR", 
+        false, 
+        _formKey, 
+        () { setState(() {}); }
+      );
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   // When first installed, the app requires permission to store data
@@ -64,6 +87,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
                 items: const <BottomNavigationBarItem>[
                   BottomNavigationBarItem(icon: Icon(Icons.auto_graph_rounded), label: 'Graph'),
                   BottomNavigationBarItem(icon: Icon(Icons.pie_chart_outline_rounded), label: 'Pie'),
+                  BottomNavigationBarItem(icon: Icon(Icons.add_rounded), label: 'Add'),
                   BottomNavigationBarItem(icon: Icon(Icons.candlestick_chart_outlined), label: 'Stats'),
                   BottomNavigationBarItem(icon: Icon(Icons.format_list_bulleted_rounded), label: 'Details'),
                 ],

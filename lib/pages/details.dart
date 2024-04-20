@@ -1,6 +1,5 @@
 import 'package:expenses_charts/components/expense_tile.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
-import 'package:expenses_charts/models/expense_utils.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:expenses_charts/components/database_helper.dart';
@@ -194,42 +193,6 @@ class _DetailsPageState extends State<DetailsPage> with AutomaticKeepAliveClient
                   },
                 )
               ),
-              const SizedBox(height: 10.0),
-              Center(
-                child: GestureDetector(
-                  onTap: () async {
-                    ExpenseUtils.showExpenseDialog(
-                      true,
-                      context, 
-                      settingsState, 
-                      DateTime.now().millisecondsSinceEpoch, 
-                      DateTime.now().millisecondsSinceEpoch, 
-                      "expense", 
-                      "grocery", 
-                      "", 
-                      "", 
-                      "EUR", 
-                      false, 
-                      _formKey, 
-                      () { setState(() {}); }
-                    );
-                  },
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      color: Colors.white,
-                      size: 30
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10.0)
             ],
           ),
         ),
