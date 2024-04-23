@@ -32,6 +32,7 @@ class Indicator extends StatelessWidget {
       child: Row(
         children: <Widget>[
           Container(
+            key: const Key("coloredBoxKey"),
             width: size,
             height: size,
             decoration: BoxDecoration(
@@ -46,6 +47,7 @@ class Indicator extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               text,
+              key: const Key("indicatorTextKey"),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isBold ? FontWeight.bold : FontWeight.normal,

@@ -2,13 +2,12 @@ import 'package:expenses_charts/components/expense_tile.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
-import 'package:expenses_charts/components/database_helper.dart';
+import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
-import 'package:velocity_x/velocity_x.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
 
@@ -57,9 +56,9 @@ class _DetailsPageState extends State<DetailsPage> with AutomaticKeepAliveClient
     settingsState = context.watch<SettingsProvider>();
     return Scaffold(
       appBar: AppBar(
-        leading: const Icon(
+        leading: Icon(
           Icons.list,
-          color: Vx.orange400,
+          color: Theme.of(context).colorScheme.primary,
         ),
         title: const Text('Details'),
         actions: [

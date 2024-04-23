@@ -1,5 +1,5 @@
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:expenses_charts/models/expense_utils.dart';
+import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:expenses_charts/pages/details.dart';
 import 'package:expenses_charts/pages/expense_graph.dart';
 import 'package:expenses_charts/pages/expense_pie.dart';
@@ -25,33 +25,14 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
   static const List<Widget> _widgetOptions = <Widget>[
     ExpenseGraphPage(),
     ExpensePiePage(),
-    Placeholder(),
     ExpenseStatsPage(),
     DetailsPage(),
   ];
 
   void _onItemTapped(int index) {
-    if (index == 2) {
-      // Don't set state, just click the button
-      ExpenseUtils.showExpenseDialog(
-        true,
-        context, 
-        DateTime.now().millisecondsSinceEpoch, 
-        DateTime.now().millisecondsSinceEpoch, 
-        "expense", 
-        "grocery", 
-        "", 
-        "", 
-        "EUR", 
-        false, 
-        _formKey, 
-        () { setState(() {}); }
-      );
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   // When first installed, the app requires permission to store data
@@ -79,20 +60,51 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
           if (status!.isGranted) { 
             // Got authorization
             return Scaffold(
-              body: Center(child: _widgetOptions.elementAt(
-                _selectedIndex
-              )),
+              body: Stack(
+                children: <Widget>[
+                  Center(child: _widgetOptions.elementAt(
+                    _selectedIndex
+                  )),
+                  Positioned(
+                    bottom: 60,
+                    right: 20,
+                    width: 30,
+                    height: 30,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        // Don't set state, just click the button
+                        DateTime today = DateTime.now();
+                        int millisSinceEpochStart = DateTime(today.year, today.month, today.day, 10).millisecondsSinceEpoch;
+                        ExpenseUtils.showExpenseDialog(
+                          true,
+                          context, 
+                          millisSinceEpochStart,
+                          millisSinceEpochStart, 
+                          "expense", 
+                          "grocery", 
+                          "", 
+                          "", 
+                          "EUR", 
+                          false, 
+                          _formKey, 
+                          () { setState(() {}); }
+                        );
+                      },
+                      child: const Icon(Icons.add_rounded)
+                    )
+                  )
+                ]
+              ),
               bottomNavigationBar: BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
                 items: const <BottomNavigationBarItem>[
                   BottomNavigationBarItem(icon: Icon(Icons.auto_graph_rounded), label: 'Graph'),
                   BottomNavigationBarItem(icon: Icon(Icons.pie_chart_outline_rounded), label: 'Pie'),
-                  BottomNavigationBarItem(icon: Icon(Icons.add_rounded), label: 'Add'),
                   BottomNavigationBarItem(icon: Icon(Icons.candlestick_chart_outlined), label: 'Stats'),
                   BottomNavigationBarItem(icon: Icon(Icons.format_list_bulleted_rounded), label: 'Details'),
                 ],
                 currentIndex: _selectedIndex,
-                selectedItemColor: Colors.blueGrey,
+                selectedItemColor: Theme.of(context).colorScheme.secondary,
                 onTap: _onItemTapped,
               ),
             );

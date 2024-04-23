@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cr_file_saver/file_saver.dart';
 import 'package:csv/csv.dart';
-import 'package:expenses_charts/components/database_helper.dart';
+import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:file_picker/file_picker.dart';

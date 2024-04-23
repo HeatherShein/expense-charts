@@ -32,6 +32,7 @@ class MoneyAmount extends StatelessWidget {
       child: Center(
         child: Text(
           "$sign $value $currency",
+          key: const Key("moneyAmountTextKey"),
           style: TextStyle(
             fontSize: textFontSize,
             fontWeight: FontWeight.bold,

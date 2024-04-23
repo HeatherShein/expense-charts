@@ -1,12 +1,11 @@
 import 'package:expenses_charts/components/settings_menu.dart';
-import 'package:expenses_charts/components/table_stats.dart';
-import 'package:expenses_charts/models/expense_utils.dart';
+import 'package:expenses_charts/components/stat_tile.dart';
+import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:velocity_x/velocity_x.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
 
@@ -21,6 +20,7 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
+    String moneyAmountCurrency = settingsState.currency == "EUR" ? "€" : settingsState.currency;
     return FutureBuilder(
       future: ExpenseUtils.getExpenseStats(settingsState.entryType, settingsState.expenseCategory, settingsState.startDate, settingsState.endDate), 
       builder: (context, snapshot) {
@@ -32,9 +32,9 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
           Map<String, dynamic>? expenseStats = snapshot.data; 
           return Scaffold(
             appBar: AppBar(
-              leading: const Icon(
+              leading: Icon(
                 Icons.candlestick_chart_outlined,
-                color: Vx.orange400,
+                color: Theme.of(context).colorScheme.primary,
               ),
               title: const Text("Statistics"),
               actions: const [
@@ -186,33 +186,137 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                               ),
                             ],
                           ),
-                          const Text(
-                            "General",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            )
+                          const Spacer(),
+                          Card(
+                            color: Theme.of(context).cardColor,
+                            elevation: 0.2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    height: 35,
+                                    width: 90,
+                                    padding: const EdgeInsets.all(4.0),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).primaryColor,
+                                      borderRadius: BorderRadius.circular(4.0),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        "General",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black
+                                        )
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      StatTile(
+                                        tileAggregate: "Count",
+                                        tileAggregateColor: Colors.white,
+                                        tileValue: expenseStats!["genNRows"].toString(), 
+                                        tileValueColor: Theme.of(context).colorScheme.secondary,
+                                        currency: moneyAmountCurrency,
+                                      ),
+                                      StatTile(
+                                        tileAggregate: "Average",
+                                        tileAggregateColor: Colors.white,
+                                        tileValue: expenseStats["genAverage"].toStringAsFixed(2), 
+                                        tileValueColor: Theme.of(context).colorScheme.secondary,
+                                        currency: moneyAmountCurrency,
+                                      ),
+                                      StatTile(
+                                        tileAggregate: "Min",
+                                        tileAggregateColor: Colors.white,
+                                        tileValue: expenseStats["genMin"].toStringAsFixed(2), 
+                                        tileValueColor: Theme.of(context).colorScheme.secondary,
+                                        currency: moneyAmountCurrency,
+                                      ),
+                                      StatTile(
+                                        tileAggregate: "Max",
+                                        tileAggregateColor: Colors.white,
+                                        tileValue: expenseStats["genMax"].toStringAsFixed(2), 
+                                        tileValueColor: Theme.of(context).colorScheme.secondary,
+                                        currency: moneyAmountCurrency,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          TableStats(
-                            nRows: expenseStats!["genNRows"].toString(), 
-                            average: expenseStats["genAverage"].toStringAsFixed(2), 
-                            min: expenseStats["genMin"].toStringAsFixed(2), 
-                            max: expenseStats["genMax"].toStringAsFixed(2)
+                          const Spacer(),
+                          Card(
+                            color: Theme.of(context).cardColor,
+                            elevation: 0.2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    height: 35,
+                                    width: 90,
+                                    padding: const EdgeInsets.all(4.0),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).primaryColor,
+                                      borderRadius: BorderRadius.circular(4.0),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        "Daily",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black
+                                        )
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      StatTile(
+                                        tileAggregate: "Count",
+                                        tileAggregateColor: Colors.white,
+                                        tileValue: expenseStats["dailyNRows"].toString(), 
+                                        tileValueColor: Theme.of(context).colorScheme.secondary,
+                                        currency: moneyAmountCurrency,
+                                      ),
+                                      StatTile(
+                                        tileAggregate: "Average",
+                                        tileAggregateColor: Colors.white,
+                                        tileValue: expenseStats["dailyAverage"].toStringAsFixed(2), 
+                                        tileValueColor: Theme.of(context).colorScheme.secondary,
+                                        currency: moneyAmountCurrency,
+                                      ),
+                                      StatTile(
+                                        tileAggregate: "Min",
+                                        tileAggregateColor: Colors.white,
+                                        tileValue: expenseStats["dailyMin"].toStringAsFixed(2), 
+                                        tileValueColor: Theme.of(context).colorScheme.secondary,
+                                        currency: moneyAmountCurrency,
+                                      ),
+                                      StatTile(
+                                        tileAggregate: "Max",
+                                        tileAggregateColor: Colors.white,
+                                        tileValue: expenseStats["dailyMax"].toStringAsFixed(2), 
+                                        tileValueColor: Theme.of(context).colorScheme.secondary,
+                                        currency: moneyAmountCurrency,
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 16.0),
-                          const Text(
-                            "Daily",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            )
-                          ),
-                          TableStats(
-                            nRows: expenseStats["dailyNRows"].toString(), 
-                            average: expenseStats["dailyAverage"].toStringAsFixed(2), 
-                            min: expenseStats["dailyMin"].toStringAsFixed(2), 
-                            max: expenseStats["dailyMax"].toStringAsFixed(2)
-                          ),
+                          const Spacer(),
                         ]
                       )
                     )

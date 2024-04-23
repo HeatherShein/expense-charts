@@ -2,14 +2,13 @@ import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/components/money_amount.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/models/expense_group.dart';
-import 'package:expenses_charts/models/expense_utils.dart';
+import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:velocity_x/velocity_x.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
 
@@ -73,9 +72,9 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
           }
           return Scaffold(
             appBar: AppBar(
-              leading: const Icon(
+              leading: Icon(
                 Icons.pie_chart_outline_rounded,
-                color: Vx.orange400,
+                color: Theme.of(context).colorScheme.primary,
               ),
               title: const Text("Pie chart"),
               actions: const [
@@ -181,7 +180,6 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                               )
                             )
                           ),
-                          const SizedBox(height: 8,),
                           Text(
                             "Total : ${totalExpense.toStringAsFixed(2)} ${settingsState.currency}",
                             style: const TextStyle(
@@ -194,20 +192,23 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: List.generate(
                               indicators.length, (i) {
-                                return Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    indicators[i],
-                                    const Spacer(),
-                                    MoneyAmount(
-                                      width: moneyAmountWidth, 
-                                      type: settingsState.entryType, 
-                                      value: sections[i].value.toStringAsFixed(2), 
-                                      currency: settingsState.currency, 
-                                      boxRadius: boxRadius, 
-                                      textFontSize: textFontSize
-                                    )
-                                  ],
+                                return Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      indicators[i],
+                                      const Spacer(),
+                                      MoneyAmount(
+                                        width: moneyAmountWidth, 
+                                        type: settingsState.entryType, 
+                                        value: sections[i].value.toStringAsFixed(2), 
+                                        currency: settingsState.currency, 
+                                        boxRadius: boxRadius, 
+                                        textFontSize: textFontSize
+                                      )
+                                    ],
+                                  ),
                                 );
                               }
                             )

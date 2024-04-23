@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:expenses_charts/components/database_helper.dart';
+import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/models/expenses.dart';
 import 'package:expenses_charts/providers/settings.dart';
@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class ExpenseUtils {
+  /// Utils class dedicated to expenses
   static Color getColorForCategory(String category) {
     /**
      * Picks a color corresponding to an expense category.
@@ -520,5 +521,4 @@ class ExpenseUtils {
       }
     );
   }
-
 }

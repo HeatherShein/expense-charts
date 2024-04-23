@@ -8,4 +8,9 @@ class ExpenseGroup {
     required this.category,
     required this.aggregatedValue,
   });
+
+  @override
+  String toString() {
+    return "ExpenseGroup{groupAggregate: $groupAggregate, category: $category, value: $aggregatedValue}";
+  }
 }

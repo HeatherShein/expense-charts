@@ -1,6 +1,6 @@
-import 'package:expenses_charts/components/database_helper.dart';
+import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/components/money_amount.dart';
-import 'package:expenses_charts/models/expense_utils.dart';
+import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
@@ -76,11 +76,12 @@ class _ExpenseTileState extends State<ExpenseTile> {
             child: Center(
               child: Text(
                 widget.index.toString(),
+                key: const Key("indexKey"),
                 style: const TextStyle(
                   fontSize: 8,
                   fontWeight: FontWeight.w400,
                   color: Colors.black
-                )
+                ),
               ),
             ),
           ),
@@ -95,6 +96,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
             child: Center(
               child: Text(
                 widget.category,
+                key: const Key("categoryKey"),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -113,6 +115,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                   children: [
                     Text(
                       widget.label.trim(),
+                      key: const Key("labelKey"),
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 14,
@@ -121,6 +124,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                     ),
                     Text(
                       dateString,
+                      key: const Key("dateKey"),
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 10,
@@ -134,6 +138,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
           Row(
             children: [
               MoneyAmount(
+                key: const Key("moneyAmountKey"),
                 width: 80, 
                 type: widget.type, 
                 value: widget.value,

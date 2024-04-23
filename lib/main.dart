@@ -22,10 +22,18 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
         title: 'Budget Tracker',
-        home: WidgetTreePage(),
+        home: const WidgetTreePage(),
         debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromARGB(255, 9, 26, 180),
+            brightness: Brightness.light
+          ),
+          cardColor: const Color.fromARGB(73, 9, 169, 180)
+        ),
       ),
     );
   }

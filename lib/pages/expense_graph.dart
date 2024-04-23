@@ -1,7 +1,7 @@
 import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/models/expense_group.dart';
-import 'package:expenses_charts/models/expense_utils.dart';
+import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -171,9 +171,9 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           }
           return Scaffold(
             appBar: AppBar(
-              leading: const Icon(
+              leading: Icon(
                 Icons.auto_graph_rounded, 
-                color: Vx.orange400,
+                color: Theme.of(context).colorScheme.primary,
               ),
               title: const Text("Graph"),
               actions: const [
@@ -316,7 +316,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16,),
+                    const SizedBox(height: 8,),
                     Column(
                       children: [
                         Row(

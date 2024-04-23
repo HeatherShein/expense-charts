@@ -1,14 +1,17 @@
+import 'dart:io';
+
 import 'package:expenses_charts/models/expenses.dart';
-import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 
 class DatabaseHelper {
-
+  /// Utils class dedicated to database operations
   static DatabaseHelper? _databaseHelper;
   static Database? _database;
+
+  Database? get database => _database;
 
   factory DatabaseHelper(){
     /**
@@ -44,7 +47,12 @@ class DatabaseHelper {
     /**
      * If needed, creates the database.
      */
-    final documentsDirectory = await getApplicationDocumentsDirectory();
+    final Directory documentsDirectory;
+    if (Platform.isLinux) {
+      documentsDirectory = File(Platform.script.toFilePath()).parent;
+    } else {
+      documentsDirectory = await getApplicationDocumentsDirectory();
+    }
     final databasePath = join(documentsDirectory.path, 'expense_database.db');
 
     return await openDatabase(
@@ -67,40 +75,12 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> getIdFromValues(
-    int millisSinceEpochStart, 
-    int millisSinceEpochEnd, 
-    String type, 
-    String category, 
-    String label, 
-    double value
-  ) async {
-    /**
-     * Retrieves ID from other values.
-     * Assumes one expense can be fully defined its variables. Bold assumption, can fail.
-     */
-    final db = await _getDatabase();
-    // Query expenses table to find it.
-    List<Map<String, dynamic>> maps = await db.query(
-      'expenses',
-      columns: ['id'],
-      where: 'millisSinceEpochStart = ? AND millisSinceEpochEnd = ? AND type = ? AND category = ? AND label = ? AND value = ?',
-      whereArgs: [millisSinceEpochStart, millisSinceEpochEnd, type, category, label, value]
-    );
-    // Fails if more than one result.
-    if (maps.length == 1) {
-      return maps[0]['id'] as int;
-    } else {
-      throw Exception("Error : multiple ids for this query");
-    }
-  }
-
-  Future<void> insertExpense(Expense expense) async {
+  Future<int> insertExpense(Expense expense) async {
     /**
      * Inserts/Replaces an expense into the table.
      */
     final db = await _getDatabase();
-    await db.insert(
+    return await db.insert(
       'expenses',
       expense.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -257,8 +237,37 @@ class DatabaseHelper {
       ''',
       [formattedStartDate, formattedEndDate, formattedStartDate, formattedEndDate, formattedStartDate, formattedEndDate, entryType],
     );
-    debugPrint(maps.toString());
     return maps;
+  }
+
+  Future<int> getIdFromValues(
+    int millisSinceEpochStart, 
+    int millisSinceEpochEnd, 
+    String type, 
+    String category, 
+    String label, 
+    double value
+  ) async {
+    /**
+     * Retrieves ID from other values.
+     * Assumes one expense can be fully defined its variables. Bold assumption, can fail.
+     */
+    final db = await _getDatabase();
+    // Query expenses table to find it.
+    List<Map<String, dynamic>> maps = await db.query(
+      'expenses',
+      columns: ['id'],
+      where: 'millisSinceEpochStart = ? AND millisSinceEpochEnd = ? AND type = ? AND category = ? AND label = ? AND value = ?',
+      whereArgs: [millisSinceEpochStart, millisSinceEpochEnd, type, category, label, value]
+    );
+    // Fails if more than one result.
+    if (maps.length == 1) {
+      return maps[0]['id'] as int;
+    } else if (maps.length > 1) {
+      throw Exception("Error : multiple ids for this query");
+    } else {
+      throw Exception("Error: no id found for this query");
+    }
   }
 
   Future<bool> existsInExistingDatabase(Map<String, dynamic> row) async {
@@ -321,5 +330,4 @@ class DatabaseHelper {
       }
     }
   }
-
 }
