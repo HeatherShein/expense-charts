@@ -222,7 +222,7 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                                         tileAggregateColor: Colors.white,
                                         tileValue: expenseStats!["genNRows"].toString(), 
                                         tileValueColor: Theme.of(context).colorScheme.secondary,
-                                        currency: moneyAmountCurrency,
+                                        currency: "",
                                       ),
                                       StatTile(
                                         tileAggregate: "Average",
@@ -287,7 +287,7 @@ class _ExpenseStatsPageState extends State<ExpenseStatsPage> {
                                         tileAggregateColor: Colors.white,
                                         tileValue: expenseStats["dailyNRows"].toString(), 
                                         tileValueColor: Theme.of(context).colorScheme.secondary,
-                                        currency: moneyAmountCurrency,
+                                        currency: "",
                                       ),
                                       StatTile(
                                         tileAggregate: "Average",

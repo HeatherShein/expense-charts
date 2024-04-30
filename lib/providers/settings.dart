@@ -4,7 +4,7 @@ class SettingsProvider extends ChangeNotifier{
   String _entryType = "expense";
   String _aggregateType = "day";
   DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
-  DateTime _endDate = DateTime.now();
+  DateTime _endDate = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 23, 59, 59);
   int _nExpenses = 50;
   String _keyFilter = '';
   int _boldIndex = -1;

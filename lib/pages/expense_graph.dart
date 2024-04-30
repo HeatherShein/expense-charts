@@ -329,6 +329,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                         )
                       ]
                     ),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),
