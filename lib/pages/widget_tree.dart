@@ -67,7 +67,7 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
                   )),
                 ]
               ),
-              floatingActionButton: FloatingActionButton.small(
+              floatingActionButton: FloatingActionButton(
                 backgroundColor: Theme.of(context).colorScheme.tertiary,
                 shape: const CircleBorder(),
                 onPressed: () {

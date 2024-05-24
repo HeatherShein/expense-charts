@@ -149,7 +149,7 @@ class DatabaseHelper {
     String formattedEndDate = endDate.toIso8601String();
     final List<Map<String, dynamic>> maps = await db.query(
       'expenses',
-      where: "datetime(millisSinceEpochStart / 1000, 'unixepoch') >= date(?) AND datetime(millisSinceEpochEnd / 1000, 'unixepoch') <= date(?)",
+      where: "datetime(millisSinceEpochStart / 1000, 'unixepoch') >= date(?) AND datetime(millisSinceEpochStart / 1000, 'unixepoch') < date(?, '+1 day')",
       whereArgs: [formattedStartDate, formattedEndDate]
     );
     return List.generate(maps.length, (i) {

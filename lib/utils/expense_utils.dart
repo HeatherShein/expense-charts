@@ -177,6 +177,7 @@ class ExpenseUtils {
     // Filter expenses
     List<Map<String, dynamic>> filteredExpenses;
     if (expenseCategory != "all") {
+      expensesOverPeriod = expensesOverPeriod.filter((element) => element['category'] == expenseCategory).toList();
       filteredExpenses = distributedExpenses.filter((element) => element['category'] == expenseCategory).toList();
     } else {
       filteredExpenses = distributedExpenses;
@@ -186,7 +187,7 @@ class ExpenseUtils {
       distributedExpenses[i]['formattedDate'] = "${distributedExpenses[i]['date'].year}-${distributedExpenses[i]['date'].month.toString().padLeft(2, '0')}-${distributedExpenses[i]['date'].day.toString().padLeft(2, '0')}";
     }
     Map<String, dynamic> expenseStats = {
-      "genNRows": filteredExpenses.length,
+      "genNRows": expensesOverPeriod.length,
       "genAverage": 0,
       "genMin": double.infinity,
       "genMax": -double.infinity,
