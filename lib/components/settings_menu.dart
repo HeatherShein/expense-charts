@@ -137,15 +137,16 @@ Future<void> importDatabase(BuildContext context) async {
       for (var row in importedData) {
         // Check if the row already exists in the existing database
         bool rowExists = await dbHelper.existsInExistingDatabase(row);
+        var millisSinceEpochEnd = row['millisSinceEpochEnd'] ?? row['millisSinceEpochStart'];
         if (!rowExists) {
           dbHelper.insertExpense(
             Expense(
-              millisSinceEpochStart: row['millisSinceEpochStart'],
-              millisSinceEpochEnd: row['millisSinceEpochEnd'] ?? row['millisSinceEpochStart'],
+              millisSinceEpochStart: int.parse(row['millisSinceEpochStart']),
+              millisSinceEpochEnd: int.parse(millisSinceEpochEnd),
               type: row['type'],
               category: row['category'],
               label: row['label'],
-              value: row['value']
+              value: double.parse(row['value'])
             )
           );
           counter++;
@@ -403,17 +404,18 @@ Future<void> importCsv(BuildContext context) async {
     for (var row in csvData) {
       // Check if the row exists in the database
       bool rowExists = await dbHelper.existsInExistingDatabase(row);
+      var millisSinceEpochEnd = row['millisSinceEpochEnd'] ?? row['millisSinceEpochStart'];
 
       // If the row doesn't exist, insert it into the database
       if (!rowExists) {
         dbHelper.insertExpense(
           Expense(
-            millisSinceEpochStart: row['millisSinceEpochStart'],
-            millisSinceEpochEnd: row['millisSinceEpochEnd'],
+            millisSinceEpochStart: row['millisSinceEpochStart'] is String ? int.parse(row['millisSinceEpochStart']): row['millisSinceEpochStart'],
+            millisSinceEpochEnd: millisSinceEpochEnd is String ? int.parse(millisSinceEpochEnd): millisSinceEpochEnd,
             type: row['type'],
             category: row['category'],
             label: row['label'],
-            value: row['value']
+            value: row['value'] is String ? double.parse(row['value']): row['value']
           )
         );
         counter++;

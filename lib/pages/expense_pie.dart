@@ -1,6 +1,7 @@
 import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/components/money_amount.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
+import 'package:expenses_charts/managers/pref_manager.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:expenses_charts/providers/settings.dart';
@@ -20,6 +21,21 @@ class ExpensePiePage extends StatefulWidget {
 }
 
 class _ExpensePiePageState extends State<ExpensePiePage> {
+  double _remainingBudget = .0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRemainingBudget();
+  }
+
+  Future<void> _loadRemainingBudget() async {
+    double? value = await PrefManager.getVariable();
+    setState(() {
+      _remainingBudget = value ?? .0;
+    });
+  }
+
   List<PieChartSectionData> getSections(Map<String, List<double>> totalPerCategory) {
     List<PieChartSectionData> sections = totalPerCategory.keys.map((category) {
       double total = totalPerCategory[category]!.reduce((value, element) => value + element);
@@ -183,9 +199,77 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                           Text(
                             "Total : ${totalExpense.toStringAsFixed(2)} ${settingsState.currency}",
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.w200,
                             )
+                          ),
+                          /*
+                          IconButton(
+                            onPressed: () async {
+                              DatabaseHelper dbhelper = DatabaseHelper();
+                              dbhelper.deleteTable();
+                            }, 
+                            icon: const Icon(Icons.done_rounded)
+                          ),
+                          */
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Remaining : ${_remainingBudget.toStringAsFixed(2)} ${settingsState.currency}",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w200,
+                                )
+                              ),
+                              IconButton(
+                                onPressed: () async {
+                                  showDialog<double>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        content: SingleChildScrollView(
+                                          child: FormBuilder(
+                                            key: _formKey,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                FormBuilderTextField(
+                                                  name: "value",
+                                                  decoration: const InputDecoration(
+                                                    labelText: "Value",
+                                                    hintText: "Write a value",
+                                                  ),
+                                                  keyboardType: TextInputType.number,
+                                                  initialValue: _remainingBudget.toString(),
+                                                ),
+                                                const SizedBox(height: 10.0,),
+                                                MaterialButton(
+                                                  color: Theme.of(context).colorScheme.secondary,
+                                                  onPressed: () async {
+                                                    _formKey.currentState?.saveAndValidate();
+                                                    var formValues = _formKey.currentState?.value;
+
+                                                    var formValue = formValues!['value'].replaceAll(",", '.');
+
+                                                    debugPrint(formValue);
+                                                    await PrefManager.saveVariable(double.parse(formValue));
+                                                    _loadRemainingBudget();
+                                                    Navigator.of(context).pop(null);
+                                                  },
+                                                  child: Text("Update")
+                                                )
+                                              ]
+                                            )
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }, 
+                                icon: const Icon(Icons.create_rounded)
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16,),
                           Column(

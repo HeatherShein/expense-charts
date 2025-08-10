@@ -1,3 +1,4 @@
+import 'package:expenses_charts/managers/pref_manager.dart';
 import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/components/money_amount.dart';
 import 'package:expenses_charts/utils/expense_utils.dart';
@@ -163,7 +164,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                             icon: const Icon(Icons.not_interested_rounded)
                           ),
                           IconButton(
-                            onPressed: () {
+                            onPressed: () async {
                               DatabaseHelper dbhelper = DatabaseHelper();
                               dbhelper.deleteExpense(
                                 widget.millisSinceEpochStart,
@@ -173,6 +174,13 @@ class _ExpenseTileState extends State<ExpenseTile> {
                                 widget.label, 
                                 double.parse(widget.value),
                               );
+                              // Update remaining budget
+                              double? remainingBudget = await PrefManager.getVariable();
+                              if (widget.type == 'expense') {
+                                PrefManager.saveVariable(remainingBudget! + double.parse(widget.value));
+                              } else {
+                                PrefManager.saveVariable(remainingBudget! - double.parse(widget.value));
+                              }
                               widget.refreshCallback();
                               Navigator.of(context).pop();
                             }, 

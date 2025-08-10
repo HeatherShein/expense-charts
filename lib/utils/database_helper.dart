@@ -36,6 +36,14 @@ class DatabaseHelper {
     return _database!;
   }
 
+  Future<int> deleteTable() async {
+    /**
+     * To delete table
+     */
+    final db = await _getDatabase();
+    return await db.rawDelete('DELETE FROM expenses');
+  }
+
   Future<void> deleteDatabase() async {
     /**
      * To delete database.
@@ -137,6 +145,33 @@ class DatabaseHelper {
         value: maps[i]['value'] as double,
       );
     });
+  }
+
+  Future<Expense> getExpenseById(int expenseId) async {
+    /**
+     * Gets expense based on expenseId.
+     */
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query(
+      'expenses', 
+      where: 'id = ?',
+      whereArgs: [expenseId]
+    );
+    if (maps.isNotEmpty) {
+      return List.generate(maps.length, (i) {
+        return Expense(
+          id: maps[i]['id'] as int, 
+          millisSinceEpochStart: maps[i]['millisSinceEpochStart'] as int, 
+          millisSinceEpochEnd: maps[i]['millisSinceEpochEnd'] as int, 
+          type: maps[i]['type'] as String, 
+          category: maps[i]['category'] as String,
+          label: maps[i]['label'] as String,
+          value: maps[i]['value'] as double,
+        );
+      })[0];
+    } else {
+      throw Exception("Error: no id found for this query");
+    }
   }
 
   Future<List<Expense>> getExpensesWithDates(DateTime startDate, DateTime endDate) async {
@@ -277,6 +312,8 @@ class DatabaseHelper {
     debugPrint(startDate.toString());
     debugPrint(formattedStartDate.toString());
      */
+    
+    var millisSinceEpochEnd = row['millisSinceEpochEnd'] ?? row['millisSinceEpochStart'];
     final db = await _getDatabase();
     int? count = Sqflite.firstIntValue(await db.rawQuery(
       '''
@@ -285,8 +322,7 @@ class DatabaseHelper {
       FROM 
         expenses 
       WHERE 
-        id = ? 
-        AND millisSinceEpochStart = ?
+        millisSinceEpochStart = ?
         AND millisSinceEpochEnd = ?
         AND type = ?
         AND category = ?
@@ -294,13 +330,12 @@ class DatabaseHelper {
         AND value = ?
       ''',
       [
-        row['id'], 
-        row['millisSinceEpochStart'],
-        row['millisSinceEpochEnd'] ?? row['millisSinceEpochStart'],
+        row['millisSinceEpochStart'] is String ? int.parse(row['millisSinceEpochStart']): row['millisSinceEpochStart'],
+        millisSinceEpochEnd is String ? int.parse(millisSinceEpochEnd): millisSinceEpochEnd,
         row['type'],
         row['category'],
         row['label'],
-        row['value']
+        row['value'] is String ? double.parse(row['value']): row['value']
       ],
     ));
     return count! > 0;

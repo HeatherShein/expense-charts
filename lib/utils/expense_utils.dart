@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:expenses_charts/managers/pref_manager.dart';
 import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/models/expenses.dart';
@@ -469,12 +470,14 @@ class ExpenseUtils {
                           var formCategory = formValues?['category'];
                           var formLabel = formValues?['label'];
                           var formValue = formValues!['value'].replaceAll(",", ".");
+                          formValue = double.parse(formValue);
                           var formCurrency = formValues['currency'];
                 
                           // Convert currency if needed
                           if (formCurrency != settingsState.currency){
                             // TODO : Update based on live currency rates.
-                            formValue = (double.parse(formValue) / 164).toStringAsFixed(2);
+                            formValue = (formValue / 164).toStringAsFixed(2);
+                            formValue = double.parse(formValue);
                           }
                         
                           var dbhelper = DatabaseHelper();
@@ -486,19 +489,45 @@ class ExpenseUtils {
                             type: formType, 
                             category: formCategory, 
                             label: formLabel, 
-                            value: double.parse(formValue)
+                            value: formValue
                           );
                 
+                          double? remainingBudget = await PrefManager.getVariable();
                           if (isNewExpense) {
                             dbhelper.insertExpense(
                               newExpense
                             );
+                            // Update remaining budget
+                            if (formType == 'expense') {
+                              PrefManager.saveVariable(remainingBudget! - formValue);
+                            } else {
+                              PrefManager.saveVariable(remainingBudget! + formValue);
+                            }
                           } else {
+                            Expense oldExpense = await dbhelper.getExpenseById(expenseId);
                             dbhelper.updateExpense(
                               expenseId,
                               newExpense
                             );
+                            // Update remaining budget
+                            double difference;
+                            if (newExpense.type == oldExpense.type) {
+                              // Same sign
+                              difference = newExpense.value - oldExpense.value;
+                              if (newExpense.type == 'expense') {
+                                PrefManager.saveVariable(remainingBudget! - difference);
+                              } else {
+                                PrefManager.saveVariable(remainingBudget! + difference);
+                              }
+                            } else if (newExpense.type == 'expense') {
+                              difference = -newExpense.value - oldExpense.value;
+                              PrefManager.saveVariable(remainingBudget! + difference);
+                            } else {
+                              difference = newExpense.value + oldExpense.value;
+                              PrefManager.saveVariable(remainingBudget! + difference);
+                            }
                           }
+
                           final scaffold = ScaffoldMessenger.of(context);
                           scaffold.showSnackBar(
                             SnackBar(
