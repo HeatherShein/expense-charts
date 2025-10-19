@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:cr_file_saver/file_saver.dart';
 import 'package:csv/csv.dart';
+import 'package:expenses_charts/constants/categories.dart';
 import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
 import 'package:expenses_charts/providers/settings.dart';
@@ -9,6 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -56,10 +57,7 @@ Future<void> exportDatabase(BuildContext context) async {
     String destinationPath = path.join(destinationDir, 'exported_database.db');
 
     // Copy the database file to the destination directory
-    await CRFileSaver.saveFile(
-      databasePath,
-      destinationFileName: destinationPath,
-    );
+    await File(databasePath).copy(destinationPath);
 
     // Dismiss loading dialog
     // ignore: use_build_context_synchronously
@@ -141,12 +139,18 @@ Future<void> importDatabase(BuildContext context) async {
         if (!rowExists) {
           dbHelper.insertExpense(
             Expense(
-              millisSinceEpochStart: int.parse(row['millisSinceEpochStart']),
-              millisSinceEpochEnd: int.parse(millisSinceEpochEnd),
-              type: row['type'],
-              category: row['category'],
-              label: row['label'],
-              value: double.parse(row['value'])
+              millisSinceEpochStart: row['millisSinceEpochStart'] is int 
+                ? row['millisSinceEpochStart'] 
+                : int.parse(row['millisSinceEpochStart'].toString()),
+              millisSinceEpochEnd: millisSinceEpochEnd is int 
+                ? millisSinceEpochEnd 
+                : int.parse(millisSinceEpochEnd.toString()),
+              type: row['type'].toString(),
+              category: row['category'].toString(),
+              label: row['label'].toString(),
+              value: row['value'] is double 
+                ? row['value'] 
+                : double.parse(row['value'].toString())
             )
           );
           counter++;
@@ -251,7 +255,8 @@ Future<void> preExportCsv(BuildContext context) async {
 
 Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDate) async {
   /**
-   * Exports the database to a selected destination as a CSV.
+   * Exports the database to a selected destination as a CSV with proper formatting.
+   * Uses the same format as the Python data_process.py script.
    */
 
   // Show loading dialog
@@ -285,7 +290,7 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
       return;
     }
     // Set the destination file path
-    String destinationPath = path.join(destinationDir, 'exported_database.csv');
+    String destinationPath = path.join(destinationDir, 'expenses.csv');
 
     // Create a File object
     File exportedFile = File(destinationPath);
@@ -293,23 +298,30 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
     // Open the file in write mode
     var sink = exportedFile.openWrite();
 
-    // Write the header
-    sink.write("id,millisSinceEpochStart,millisSinceEpochEnd,type,category,label,value\n");
+    // Write the header in the correct format
+    sink.write("Date,Intitulé,Montant,Type,Revenu/Dépense\n");
 
-    // Write each row of data
+    // Write each row of data with proper formatting
     for (Expense expense in expenses) {
+      // Format date as MM/DD/YYYY
+      String formattedDate = DateFormat('MM/dd/yyyy').format(
+        DateTime.fromMillisecondsSinceEpoch(expense.millisSinceEpochStart)
+      );
+      
+      // Convert type: expense = -1, income = 1
+      String typeValue = expense.type == 'expense' ? '-1' : '1';
+      
+      // Get French category name
+      String frenchCategory = ExpenseCategories.getCsvName(expense.category);
+      
       sink.write(
-        _generateCsvRow(
-          [
-            expense.id,
-            expense.millisSinceEpochStart,
-            expense.millisSinceEpochEnd,
-            expense.type,
-            expense.category,
-            expense.label,
-            expense.value,
-          ]
-        )
+        _generateCsvRow([
+          formattedDate,
+          expense.label,
+          expense.value.toString(),
+          frenchCategory,
+          typeValue,
+        ])
       );
     }
 
@@ -325,7 +337,7 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       const SnackBar(
-        content: Text("Database exported as CSV successfully !"),
+        content: Text("Database exported as CSV successfully! File saved as 'expenses.csv'"),
       )
     );
   } catch (e) {
@@ -336,7 +348,7 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
-        content: Text("Error exporting the database as CSV : $e !"),
+        content: Text("Error exporting the database as CSV: $e"),
       )
     );
   }
@@ -481,11 +493,13 @@ class SettingsMenu extends StatelessWidget {
             break;
           case 'import_database':
             importDatabase(context);
+            break;
           case 'export_csv':
             preExportCsv(context);
             break;
           case 'import_csv':
             importCsv(context);
+            break;
           default:
             break;
         }

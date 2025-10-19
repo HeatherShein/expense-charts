@@ -1,10 +1,11 @@
-import 'package:expenses_charts/managers/pref_manager.dart';
-import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/components/money_amount.dart';
+import 'package:expenses_charts/providers/budget_provider.dart';
+import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
@@ -175,11 +176,11 @@ class _ExpenseTileState extends State<ExpenseTile> {
                                 double.parse(widget.value),
                               );
                               // Update remaining budget
-                              double? remainingBudget = await PrefManager.getVariable();
+                              final budgetProvider = context.read<BudgetProvider>();
                               if (widget.type == 'expense') {
-                                PrefManager.saveVariable(remainingBudget! + double.parse(widget.value));
+                                await budgetProvider.addToBudget(double.parse(widget.value));
                               } else {
-                                PrefManager.saveVariable(remainingBudget! - double.parse(widget.value));
+                                await budgetProvider.subtractFromBudget(double.parse(widget.value));
                               }
                               widget.refreshCallback();
                               Navigator.of(context).pop();

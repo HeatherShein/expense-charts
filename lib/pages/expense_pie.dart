@@ -1,14 +1,15 @@
+import 'package:expenses_charts/components/date_range_picker.dart';
+import 'package:expenses_charts/components/entry_type_dropdown.dart';
 import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/components/money_amount.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
-import 'package:expenses_charts/managers/pref_manager.dart';
 import 'package:expenses_charts/models/expense_group.dart';
-import 'package:expenses_charts/utils/expense_utils.dart';
+import 'package:expenses_charts/providers/budget_provider.dart';
 import 'package:expenses_charts/providers/settings.dart';
+import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
@@ -21,18 +22,12 @@ class ExpensePiePage extends StatefulWidget {
 }
 
 class _ExpensePiePageState extends State<ExpensePiePage> {
-  double _remainingBudget = .0;
-
   @override
   void initState() {
     super.initState();
-    _loadRemainingBudget();
-  }
-
-  Future<void> _loadRemainingBudget() async {
-    double? value = await PrefManager.getVariable();
-    setState(() {
-      _remainingBudget = value ?? .0;
+    // Initialize budget provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BudgetProvider>().initialize();
     });
   }
 
@@ -65,7 +60,8 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
 
   @override
   Widget build(BuildContext context) {
-    SettingsProvider settingsState = context.watch<SettingsProvider>();
+    final settingsState = context.watch<SettingsProvider>();
+    final budgetProvider = context.watch<BudgetProvider>();
     return FutureBuilder(
       future: ExpenseUtils.getExpenseGroups(settingsState.entryType, "", settingsState.startDate, settingsState.endDate), 
       builder: (context, snapshot) {
@@ -108,84 +104,29 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              DropdownButton<String>(
+                              EntryTypeDropdown(
                                 value: settingsState.entryType,
-                                items: const <DropdownMenuItem<String>>[
-                                  DropdownMenuItem<String>(
-                                    value: 'expense',
-                                    child: Text('Expense')
-                                  ),
-                                  DropdownMenuItem<String>(
-                                    value: 'income',
-                                    child: Text('Income')
-                                  ),
-                                ], 
                                 onChanged: (String? value) {
                                   setState(() {
                                     settingsState.entryType = value!;
                                   });
-                                }
-                              ),
-                              Text(DateFormat('yyyy-MM-dd').format(settingsState.startDate)),
-                              IconButton(
-                                icon: const Icon(Icons.calendar_today),
-                                onPressed: () async {
-                                  DateTime? newStartDate = await showDatePicker(
-                                      context: context,
-                                      initialDate: settingsState.startDate,
-                                      firstDate: DateTime(2020),
-                                      lastDate: DateTime(DateTime.now().year, 12, 31),
-                                      helpText: 'Select a start date'
-                                  );
-                                  if (newStartDate != null) {
-                                    setState(() {
-                                    settingsState.startDate = DateTime(
-                                      newStartDate.year, 
-                                      newStartDate.month, 
-                                      newStartDate.day
-                                    );
-                                    if (settingsState.endDate.difference(settingsState.startDate).inMilliseconds < 0) {
-                                      // To catch every expense that day
-                                      settingsState.endDate = DateTime(
-                                        newStartDate.year,
-                                        newStartDate.month,
-                                        newStartDate.day,
-                                        23,
-                                        59,
-                                        59
-                                      );
-                                    }
-                                  });
-                                  }
-                                },
-                              ),
-                              Text(DateFormat('yyyy-MM-dd').format(settingsState.endDate)),
-                              IconButton(
-                                icon: const Icon(Icons.calendar_today),
-                                onPressed: () async {
-                                  DateTime? newEndDate = await showDatePicker(
-                                      context: context,
-                                      initialDate: settingsState.endDate,
-                                      firstDate: DateTime(2020),
-                                      lastDate: DateTime(DateTime.now().year, 12, 31),
-                                      helpText: 'Select an end date'
-                                    );
-                                  if (newEndDate != null) {
-                                    setState(() {  
-                                    // Define to 23:59 to catch every expense this day
-                                    settingsState.endDate = DateTime(
-                                      newEndDate.year, 
-                                      newEndDate.month, 
-                                      newEndDate.day,
-                                      23,
-                                      59,
-                                      59
-                                    );
-                                  });
-                                  }
                                 },
                               ),
                             ],
+                          ),
+                          DateRangePicker(
+                            startDate: settingsState.startDate,
+                            endDate: settingsState.endDate,
+                            onStartDateChanged: (DateTime newDate) {
+                              setState(() {
+                                settingsState.startDate = newDate;
+                              });
+                            },
+                            onEndDateChanged: (DateTime newDate) {
+                              setState(() {
+                                settingsState.endDate = newDate;
+                              });
+                            },
                           ),
                           Flexible(
                             child: PieChart(
@@ -203,23 +144,19 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                               fontWeight: FontWeight.w200,
                             )
                           ),
-                          /*
-                          IconButton(
-                            onPressed: () async {
-                              DatabaseHelper dbhelper = DatabaseHelper();
-                              dbhelper.deleteTable();
-                            }, 
-                            icon: const Icon(Icons.done_rounded)
-                          ),
-                          */
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "Remaining : ${_remainingBudget.toStringAsFixed(2)} ${settingsState.currency}",
-                                style: const TextStyle(
+                                !budgetProvider.isBudgetSet 
+                                  ? "Set your initial budget below"
+                                  : "Remaining : ${budgetProvider.getFormattedBudget(settingsState.currency)}",
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w200,
+                                  color: !budgetProvider.isBudgetSet 
+                                    ? Theme.of(context).colorScheme.error
+                                    : null,
                                 )
                               ),
                               IconButton(
@@ -241,7 +178,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                                     hintText: "Write a value",
                                                   ),
                                                   keyboardType: TextInputType.number,
-                                                  initialValue: _remainingBudget.toString(),
+                                                  initialValue: budgetProvider.remainingBudget.toString(),
                                                 ),
                                                 const SizedBox(height: 10.0,),
                                                 MaterialButton(
@@ -253,8 +190,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                                     var formValue = formValues!['value'].replaceAll(",", '.');
 
                                                     debugPrint(formValue);
-                                                    await PrefManager.saveVariable(double.parse(formValue));
-                                                    _loadRemainingBudget();
+                                                    await budgetProvider.updateBudget(double.parse(formValue));
                                                     Navigator.of(context).pop(null);
                                                   },
                                                   child: Text("Update")

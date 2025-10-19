@@ -1,3 +1,5 @@
+import 'package:expenses_charts/components/date_range_picker.dart';
+import 'package:expenses_charts/components/entry_type_dropdown.dart';
 import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/models/expense_group.dart';
@@ -5,12 +7,8 @@ import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
-
-final _formKey = GlobalKey<FormBuilderState>();
 
 class ExpenseGraphPage extends StatefulWidget {
   const ExpenseGraphPage({super.key});
@@ -190,23 +188,13 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            DropdownButton<String>(
+                            EntryTypeDropdown(
                               value: settingsState.entryType,
-                              items: const <DropdownMenuItem<String>>[
-                                DropdownMenuItem<String>(
-                                  value: 'expense',
-                                  child: Text('Expense')
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'income',
-                                  child: Text('Income')
-                                ),
-                              ], 
                               onChanged: (String? value) {
                                 setState(() {
                                   settingsState.entryType = value!;
                                 });
-                              }
+                              },
                             ),
                             DropdownButton<String>(
                               value: settingsState.aggregateType,
@@ -236,69 +224,19 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                             ),
                           ],
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(DateFormat('yyyy-MM-dd').format(settingsState.startDate)),
-                            IconButton(
-                              icon: const Icon(Icons.calendar_today),
-                              onPressed: () async {
-                                DateTime? newStartDate = await showDatePicker(
-                                    context: context,
-                                    initialDate: settingsState.startDate,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(DateTime.now().year, 12, 31),
-                                    helpText: 'Select a start date'
-                                );
-                                if (newStartDate != null) {
-                                  setState(() {  
-                                    settingsState.startDate = DateTime(
-                                      newStartDate.year, 
-                                      newStartDate.month, 
-                                      newStartDate.day,
-                                    );
-                                    if (settingsState.endDate.difference(settingsState.startDate).inMilliseconds < 0) {
-                                      // To catch every expense that day
-                                      settingsState.endDate = DateTime(
-                                        newStartDate.year,
-                                        newStartDate.month,
-                                        newStartDate.day,
-                                        23,
-                                        59,
-                                        59
-                                      );
-                                    }
-                                  });
-                                }
-                              },
-                            ),
-                            Text(DateFormat('yyyy-MM-dd').format(settingsState.endDate)),
-                            IconButton(
-                              icon: const Icon(Icons.calendar_today),
-                              onPressed: () async {
-                                DateTime? newEndDate = await showDatePicker(
-                                    context: context,
-                                    initialDate: settingsState.endDate,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(DateTime.now().year, 12, 31),
-                                    helpText: 'Select an end date'
-                                  );
-                                if (newEndDate != null) {
-                                  setState(() {  
-                                    // Define to 23:59 to catch every expense this day
-                                    settingsState.endDate = DateTime(
-                                      newEndDate.year, 
-                                      newEndDate.month, 
-                                      newEndDate.day,
-                                      23,
-                                      59,
-                                      59
-                                    );
-                                  });
-                                }
-                              },
-                            ),
-                          ],
+                        DateRangePicker(
+                          startDate: settingsState.startDate,
+                          endDate: settingsState.endDate,
+                          onStartDateChanged: (DateTime newDate) {
+                            setState(() {
+                              settingsState.startDate = newDate;
+                            });
+                          },
+                          onEndDateChanged: (DateTime newDate) {
+                            setState(() {
+                              settingsState.endDate = newDate;
+                            });
+                          },
                         ),
                       ],
                     ),

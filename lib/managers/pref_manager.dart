@@ -15,9 +15,9 @@ class PrefManager {
     await prefs.setDouble(keyVariableName, value);
   }
 
-  static Future<double?> getVariable() async {
+  static Future<double> getVariable() async {
     final prefs = await getInstance();
-    return prefs.getDouble(keyVariableName)?.toDouble();
+    return prefs.getDouble(keyVariableName) ?? 0.0;
   }
 
   static Future<void> clearVariable() async {

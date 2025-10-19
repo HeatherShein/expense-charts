@@ -3,7 +3,6 @@ import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:expenses_charts/pages/details.dart';
 import 'package:expenses_charts/pages/expense_graph.dart';
 import 'package:expenses_charts/pages/expense_pie.dart';
-import 'package:expenses_charts/pages/expense_stats.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -25,7 +24,6 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
   static const List<Widget> _widgetOptions = <Widget>[
     ExpenseGraphPage(),
     ExpensePiePage(),
-    ExpenseStatsPage(),
     DetailsPage(),
   ];
 
@@ -91,13 +89,12 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
                 },
                 child: const Icon(Icons.add_rounded),
               ),
-              floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+              floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
               bottomNavigationBar: BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
                 items: const <BottomNavigationBarItem>[
                   BottomNavigationBarItem(icon: Icon(Icons.auto_graph_rounded), label: 'Graph'),
                   BottomNavigationBarItem(icon: Icon(Icons.pie_chart_outline_rounded), label: 'Pie'),
-                  BottomNavigationBarItem(icon: Icon(Icons.candlestick_chart_outlined), label: 'Stats'),
                   BottomNavigationBarItem(icon: Icon(Icons.format_list_bulleted_rounded), label: 'Details'),
                 ],
                 currentIndex: _selectedIndex,

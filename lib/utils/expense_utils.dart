@@ -1,5 +1,7 @@
 import 'package:collection/collection.dart';
-import 'package:expenses_charts/managers/pref_manager.dart';
+import 'package:expenses_charts/constants/colors.dart';
+import 'package:expenses_charts/constants/categories.dart';
+import 'package:expenses_charts/providers/budget_provider.dart';
 import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/models/expense_group.dart';
 import 'package:expenses_charts/models/expenses.dart';
@@ -13,40 +15,7 @@ import 'package:velocity_x/velocity_x.dart';
 class ExpenseUtils {
   /// Utils class dedicated to expenses
   static Color getColorForCategory(String category) {
-    /**
-     * Picks a color corresponding to an expense category.
-     * TODO: provide a color picker in settings.
-     */
-    Color outColor = Vx.black;
-    switch (category) {
-      case 'grocery':
-        outColor = Vx.yellow400;
-        break;
-      case 'regular':
-        outColor = Vx.blue400;
-        break;
-      case 'restaurant':
-        outColor = Vx.orange400;
-        break;
-      case 'leisure':
-        outColor = Vx.purple400;
-        break;
-      case 'trip':
-        outColor = Vx.pink400;
-        break;
-      case 'exceptional':
-        outColor = Vx.amber400;
-        break;
-      case 'health':
-        outColor = Vx.teal400;
-        break;
-      case 'alcohol':
-        outColor = Vx.red400;
-        break;
-      default:
-        outColor = Vx.black;
-    }
-    return outColor;
+    return CategoryColors.getColorForCategory(category);
   }
 
   static List<Map<String, dynamic>> getExpenseDistributed(DateTime startDate, DateTime endDate, List<Map<String, dynamic>> expenses) {
@@ -256,7 +225,7 @@ class ExpenseUtils {
       totalPerCategory[expenseGroup.category]!.add(expenseGroup.aggregatedValue);
     }
     // Add empty categories
-    for (String category in ["alcohol", "exceptional", "grocery", "health", "leisure", "regular", "restaurant", "trip"]) {
+    for (String category in ExpenseCategories.all) {
       if (!totalPerCategory.containsKey(category)) {
         totalPerCategory[category] = [0];
       }
@@ -276,7 +245,7 @@ class ExpenseUtils {
     String currency,
     bool isLongExpense,
     GlobalKey<FormBuilderState> formKey,
-    VoidCallback refreshCallback
+    VoidCallback refreshCallback,
   ) async {
     /**
      * Displays a Dialog window to insert/update an expense
@@ -492,16 +461,16 @@ class ExpenseUtils {
                             value: formValue
                           );
                 
-                          double? remainingBudget = await PrefManager.getVariable();
+                          final budgetProvider = context.read<BudgetProvider>();
                           if (isNewExpense) {
                             dbhelper.insertExpense(
                               newExpense
                             );
                             // Update remaining budget
                             if (formType == 'expense') {
-                              PrefManager.saveVariable(remainingBudget! - formValue);
+                              await budgetProvider.subtractFromBudget(formValue);
                             } else {
-                              PrefManager.saveVariable(remainingBudget! + formValue);
+                              await budgetProvider.addToBudget(formValue);
                             }
                           } else {
                             Expense oldExpense = await dbhelper.getExpenseById(expenseId);
@@ -515,16 +484,16 @@ class ExpenseUtils {
                               // Same sign
                               difference = newExpense.value - oldExpense.value;
                               if (newExpense.type == 'expense') {
-                                PrefManager.saveVariable(remainingBudget! - difference);
+                                await budgetProvider.subtractFromBudget(difference);
                               } else {
-                                PrefManager.saveVariable(remainingBudget! + difference);
+                                await budgetProvider.addToBudget(difference);
                               }
                             } else if (newExpense.type == 'expense') {
                               difference = -newExpense.value - oldExpense.value;
-                              PrefManager.saveVariable(remainingBudget! + difference);
+                              await budgetProvider.addToBudget(difference);
                             } else {
                               difference = newExpense.value + oldExpense.value;
-                              PrefManager.saveVariable(remainingBudget! + difference);
+                              await budgetProvider.addToBudget(difference);
                             }
                           }
 

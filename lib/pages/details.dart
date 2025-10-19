@@ -1,3 +1,4 @@
+import 'package:expenses_charts/components/category_dropdown.dart';
 import 'package:expenses_charts/components/expense_tile.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/providers/settings.dart';
@@ -6,10 +7,7 @@ import 'package:expenses_charts/utils/database_helper.dart';
 import 'package:expenses_charts/models/expenses.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
-
-final _formKey = GlobalKey<FormBuilderState>();
 
 class DetailsPage extends StatefulWidget {
   const DetailsPage({super.key});
@@ -93,51 +91,13 @@ class _DetailsPageState extends State<DetailsPage> with AutomaticKeepAliveClient
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    DropdownButton<String>(
+                    CategoryDropdown(
                       value: settingsState.expenseCategory,
-                      items: const <DropdownMenuItem<String>>[
-                        DropdownMenuItem<String>(
-                          value: 'all',
-                          child: Text('All')
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'alcohol',
-                          child: Text('Alcohol')
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'exceptional',
-                          child: Text('Exceptional')
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'grocery',
-                          child: Text('Grocery')
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'health',
-                          child: Text('Health')
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'leisure',
-                          child: Text('Leisure')
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'regular',
-                          child: Text('Regular')
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'restaurant',
-                          child: Text('Restaurant')
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'trip',
-                          child: Text('Trip')
-                        ),
-                      ], 
                       onChanged: (String? value) {
                         setState(() {
                           settingsState.expenseCategory = value!;
                         });
-                      }
+                      },
                     ),
                     const SizedBox(width: 20,),
                     SizedBox(
