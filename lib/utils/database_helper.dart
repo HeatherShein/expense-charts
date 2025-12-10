@@ -341,6 +341,44 @@ class DatabaseHelper {
     return count! > 0;
   }
 
+  Future<double> getRemainingBudget() async {
+    /**
+     * Calculates remaining budget as: sum of all incomes - sum of all expenses
+     */
+    final db = await _getDatabase();
+    // Get sum of all incomes
+    List<Map<String, dynamic>> incomeResult = await db.rawQuery(
+      '''
+      SELECT 
+        COALESCE(SUM(value), 0) as total 
+      FROM 
+        expenses 
+      WHERE 
+        type = 'income'
+      '''
+    );
+    double totalIncome = incomeResult.isNotEmpty && incomeResult[0]['total'] != null
+        ? (incomeResult[0]['total'] as num).toDouble()
+        : 0.0;
+    
+    // Get sum of all expenses
+    List<Map<String, dynamic>> expenseResult = await db.rawQuery(
+      '''
+      SELECT 
+        COALESCE(SUM(value), 0) as total 
+      FROM 
+        expenses 
+      WHERE 
+        type = 'expense'
+      '''
+    );
+    double totalExpense = expenseResult.isNotEmpty && expenseResult[0]['total'] != null
+        ? (expenseResult[0]['total'] as num).toDouble()
+        : 0.0;
+    
+    return totalIncome - totalExpense;
+  }
+
   Future<void> _upgradeDatabase(Database db, int oldVersion, int newVersion) async {
     /**
      * Script to upgrade database.

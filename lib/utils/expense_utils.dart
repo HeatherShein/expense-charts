@@ -463,39 +463,17 @@ class ExpenseUtils {
                 
                           final budgetProvider = context.read<BudgetProvider>();
                           if (isNewExpense) {
-                            dbhelper.insertExpense(
+                            await dbhelper.insertExpense(
                               newExpense
                             );
-                            // Update remaining budget
-                            if (formType == 'expense') {
-                              await budgetProvider.subtractFromBudget(formValue);
-                            } else {
-                              await budgetProvider.addToBudget(formValue);
-                            }
                           } else {
-                            Expense oldExpense = await dbhelper.getExpenseById(expenseId);
-                            dbhelper.updateExpense(
+                            await dbhelper.updateExpense(
                               expenseId,
                               newExpense
                             );
-                            // Update remaining budget
-                            double difference;
-                            if (newExpense.type == oldExpense.type) {
-                              // Same sign
-                              difference = newExpense.value - oldExpense.value;
-                              if (newExpense.type == 'expense') {
-                                await budgetProvider.subtractFromBudget(difference);
-                              } else {
-                                await budgetProvider.addToBudget(difference);
-                              }
-                            } else if (newExpense.type == 'expense') {
-                              difference = -newExpense.value - oldExpense.value;
-                              await budgetProvider.addToBudget(difference);
-                            } else {
-                              difference = newExpense.value + oldExpense.value;
-                              await budgetProvider.addToBudget(difference);
-                            }
                           }
+                          // Refresh budget from database
+                          await budgetProvider.refresh();
 
                           final scaffold = ScaffoldMessenger.of(context);
                           scaffold.showSnackBar(

@@ -167,7 +167,7 @@ class _ExpenseTileState extends State<ExpenseTile> {
                           IconButton(
                             onPressed: () async {
                               DatabaseHelper dbhelper = DatabaseHelper();
-                              dbhelper.deleteExpense(
+                              await dbhelper.deleteExpense(
                                 widget.millisSinceEpochStart,
                                 widget.millisSinceEpochEnd, 
                                 widget.type, 
@@ -175,13 +175,9 @@ class _ExpenseTileState extends State<ExpenseTile> {
                                 widget.label, 
                                 double.parse(widget.value),
                               );
-                              // Update remaining budget
+                              // Refresh budget from database
                               final budgetProvider = context.read<BudgetProvider>();
-                              if (widget.type == 'expense') {
-                                await budgetProvider.addToBudget(double.parse(widget.value));
-                              } else {
-                                await budgetProvider.subtractFromBudget(double.parse(widget.value));
-                              }
+                              await budgetProvider.refresh();
                               widget.refreshCallback();
                               Navigator.of(context).pop();
                             }, 

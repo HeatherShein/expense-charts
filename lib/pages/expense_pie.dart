@@ -9,10 +9,7 @@ import 'package:expenses_charts/providers/settings.dart';
 import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
-
-final _formKey = GlobalKey<FormBuilderState>();
 
 class ExpensePiePage extends StatefulWidget {
   const ExpensePiePage({super.key});
@@ -148,62 +145,18 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                !budgetProvider.isBudgetSet 
-                                  ? "Set your initial budget below"
-                                  : "Remaining : ${budgetProvider.getFormattedBudget(settingsState.currency)}",
-                                style: TextStyle(
+                                "Remaining : ${budgetProvider.getFormattedBudget(settingsState.currency)}",
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w200,
-                                  color: !budgetProvider.isBudgetSet 
-                                    ? Theme.of(context).colorScheme.error
-                                    : null,
                                 )
                               ),
                               IconButton(
                                 onPressed: () async {
-                                  showDialog<double>(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        content: SingleChildScrollView(
-                                          child: FormBuilder(
-                                            key: _formKey,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                FormBuilderTextField(
-                                                  name: "value",
-                                                  decoration: const InputDecoration(
-                                                    labelText: "Value",
-                                                    hintText: "Write a value",
-                                                  ),
-                                                  keyboardType: TextInputType.number,
-                                                  initialValue: budgetProvider.remainingBudget.toString(),
-                                                ),
-                                                const SizedBox(height: 10.0,),
-                                                MaterialButton(
-                                                  color: Theme.of(context).colorScheme.secondary,
-                                                  onPressed: () async {
-                                                    _formKey.currentState?.saveAndValidate();
-                                                    var formValues = _formKey.currentState?.value;
-
-                                                    var formValue = formValues!['value'].replaceAll(",", '.');
-
-                                                    debugPrint(formValue);
-                                                    await budgetProvider.updateBudget(double.parse(formValue));
-                                                    Navigator.of(context).pop(null);
-                                                  },
-                                                  child: Text("Update")
-                                                )
-                                              ]
-                                            )
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
+                                  await budgetProvider.refresh();
                                 }, 
-                                icon: const Icon(Icons.create_rounded)
+                                icon: const Icon(Icons.refresh_rounded),
+                                tooltip: "Refresh budget",
                               ),
                             ],
                           ),
