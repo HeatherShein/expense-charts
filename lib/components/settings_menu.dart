@@ -17,30 +17,69 @@ import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
+final _exportFilenameKey = GlobalKey<FormBuilderState>();
+
+Future<String?> _showFilenameDialog(BuildContext context, String defaultFilename, String fileExtension) async {
+  String? filename;
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Enter filename'),
+        content: FormBuilder(
+          key: _exportFilenameKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FormBuilderTextField(
+                name: "filename",
+                decoration: InputDecoration(
+                  labelText: "Filename",
+                  hintText: defaultFilename,
+                  suffixText: '.$fileExtension',
+                ),
+                initialValue: defaultFilename.replaceAll('.$fileExtension', ''),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a filename';
+                  }
+                  if (value.contains('/') || value.contains('\\')) {
+                    return 'Filename cannot contain path separators';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_exportFilenameKey.currentState?.saveAndValidate() ?? false) {
+                final formValues = _exportFilenameKey.currentState?.value;
+                filename = formValues?['filename'] as String?;
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+  return filename;
+}
 
 Future<void> exportDatabase(BuildContext context) async {
   /**
-   * Exports the database to a selected destination.
+   * Exports the database to a selected destination with user-specified filename.
    */
-
-  // Show loading dialog
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return const AlertDialog(
-        content: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16,),
-            Text("Exporting database ...")
-          ],
-        ),
-      );
-    }
-  );
 
   try {
     // Get the source database file
@@ -53,33 +92,75 @@ Future<void> exportDatabase(BuildContext context) async {
       // User canceled the operation
       return;
     }
+
+    // Prompt the user for filename
+    String? filename = await _showFilenameDialog(context, 'expense_database.db', 'db');
+    if (filename == null || filename.isEmpty) {
+      // User canceled or didn't enter filename
+      return;
+    }
+
+    // Ensure filename has the correct extension
+    if (!filename.endsWith('.db')) {
+      filename = '$filename.db';
+    }
+
     // Set the destination file path
-    String destinationPath = path.join(destinationDir, 'exported_database.db');
+    String destinationPath = path.join(destinationDir, filename);
 
-    // Copy the database file to the destination directory
-    await File(databasePath).copy(destinationPath);
-
-    // Dismiss loading dialog
-    // ignore: use_build_context_synchronously
-    Navigator.pop(context);
-
-    // Show a success message
-    // ignore: use_build_context_synchronously
-    final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(
-      const SnackBar(
-        content: Text("Database exported successfully !"),
-      )
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AlertDialog(
+          content: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16,),
+              Text("Exporting database ...")
+            ],
+          ),
+        );
+      }
     );
-  } on PlatformException catch (e) {
-    // Dismiss loading dialog
-    // ignore: use_build_context_synchronously
-    Navigator.pop(context);
+
+    try {
+      // Copy the database file to the destination
+      await File(databasePath).copy(destinationPath);
+
+      // Dismiss loading dialog
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+
+      // Show a success message
+      // ignore: use_build_context_synchronously
+      final scaffold = ScaffoldMessenger.of(context);
+      scaffold.showSnackBar(
+        SnackBar(
+          content: Text("Database exported successfully to $filename!"),
+        )
+      );
+    } on PlatformException catch (e) {
+      // Dismiss loading dialog
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+      // ignore: use_build_context_synchronously
+      final scaffold = ScaffoldMessenger.of(context);
+      scaffold.showSnackBar(
+        SnackBar(
+          content: Text("Error exporting the database : $e !"),
+        )
+      );
+    }
+  } catch (e) {
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
-        content: Text("Error exporting the database : $e !"),
+        content: Text("Error selecting export location: $e"),
       )
     );
   }
@@ -257,98 +338,122 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
   /**
    * Exports the database to a selected destination as a CSV with proper formatting.
    * Uses the same format as the Python data_process.py script.
+   * Allows user to specify the filename.
    */
 
-  // Show loading dialog
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return const AlertDialog(
-        content: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16,),
-            Text("Exporting database as CSV ...")
-          ],
-        ),
-      );
-    }
-  );
-
   try {
-    DatabaseHelper dbHelper = DatabaseHelper();
-    // Get expenses
-    List<Expense> expenses = await dbHelper.getExpensesWithDates(startDate, endDate);
-
     // Prompt the user to select the destination directory
     String? destinationDir = await FilePicker.platform.getDirectoryPath();
     if (destinationDir == null) {
       // User canceled the operation
       return;
     }
-    // Set the destination file path
-    String destinationPath = path.join(destinationDir, 'expenses.csv');
 
-    // Create a File object
-    File exportedFile = File(destinationPath);
-
-    // Open the file in write mode
-    var sink = exportedFile.openWrite();
-
-    // Write the header in the correct format
-    sink.write("Date,Intitulé,Montant,Type,Revenu/Dépense\n");
-
-    // Write each row of data with proper formatting
-    for (Expense expense in expenses) {
-      // Format date as MM/DD/YYYY
-      String formattedDate = DateFormat('MM/dd/yyyy').format(
-        DateTime.fromMillisecondsSinceEpoch(expense.millisSinceEpochStart)
-      );
-      
-      // Convert type: expense = -1, income = 1
-      String typeValue = expense.type == 'expense' ? '-1' : '1';
-      
-      // Get French category name
-      String frenchCategory = ExpenseCategories.getCsvName(expense.category);
-      
-      sink.write(
-        _generateCsvRow([
-          formattedDate,
-          expense.label,
-          expense.value.toString(),
-          frenchCategory,
-          typeValue,
-        ])
-      );
+    // Prompt the user for filename
+    String? filename = await _showFilenameDialog(context, 'expenses.csv', 'csv');
+    if (filename == null || filename.isEmpty) {
+      // User canceled or didn't enter filename
+      return;
     }
 
-    // Close file
-    sink.close();
+    // Ensure filename has the correct extension
+    if (!filename.endsWith('.csv')) {
+      filename = '$filename.csv';
+    }
 
-    // Dismiss loading dialog
-    // ignore: use_build_context_synchronously
-    Navigator.pop(context);
+    // Set the destination file path
+    String destinationPath = path.join(destinationDir, filename);
 
-    // Show a success message
-    // ignore: use_build_context_synchronously
-    final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(
-      const SnackBar(
-        content: Text("Database exported as CSV successfully! File saved as 'expenses.csv'"),
-      )
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AlertDialog(
+          content: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16,),
+              Text("Exporting database as CSV ...")
+            ],
+          ),
+        );
+      }
     );
+
+    try {
+      DatabaseHelper dbHelper = DatabaseHelper();
+      // Get expenses
+      List<Expense> expenses = await dbHelper.getExpensesWithDates(startDate, endDate);
+
+      // Create a File object
+      File exportedFile = File(destinationPath);
+
+      // Open the file in write mode
+      var sink = exportedFile.openWrite();
+
+      // Write the header in the correct format
+      sink.write("Date,Intitulé,Montant,Type,Revenu/Dépense\n");
+
+      // Write each row of data with proper formatting
+      for (Expense expense in expenses) {
+        // Format date as MM/DD/YYYY
+        String formattedDate = DateFormat('MM/dd/yyyy').format(
+          DateTime.fromMillisecondsSinceEpoch(expense.millisSinceEpochStart)
+        );
+        
+        // Convert type: expense = -1, income = 1
+        String typeValue = expense.type == 'expense' ? '-1' : '1';
+        
+        // Get French category name
+        String frenchCategory = ExpenseCategories.getCsvName(expense.category);
+        
+        sink.write(
+          _generateCsvRow([
+            formattedDate,
+            expense.label,
+            expense.value.toString(),
+            frenchCategory,
+            typeValue,
+          ])
+        );
+      }
+
+      // Close file
+      sink.close();
+
+      // Dismiss loading dialog
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+
+      // Show a success message
+      // ignore: use_build_context_synchronously
+      final scaffold = ScaffoldMessenger.of(context);
+      scaffold.showSnackBar(
+        SnackBar(
+          content: Text("Database exported as CSV successfully! File saved as '$filename'"),
+        )
+      );
+    } catch (e) {
+      // Dismiss loading dialog
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+      // ignore: use_build_context_synchronously
+      final scaffold = ScaffoldMessenger.of(context);
+      scaffold.showSnackBar(
+        SnackBar(
+          content: Text("Error exporting the database as CSV: $e"),
+        )
+      );
+    }
   } catch (e) {
-    // Dismiss loading dialog
-    // ignore: use_build_context_synchronously
-    Navigator.pop(context);
     // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
-        content: Text("Error exporting the database as CSV: $e"),
+        content: Text("Error selecting export location: $e"),
       )
     );
   }
