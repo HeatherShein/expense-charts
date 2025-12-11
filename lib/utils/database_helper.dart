@@ -244,6 +244,7 @@ class DatabaseHelper {
         datetime(millisSinceEpochStart / 1000, 'unixepoch') AS startDate,
         datetime(millisSinceEpochEnd / 1000, 'unixepoch') AS endDate,
         category,
+        label,
         value
       FROM 
         expenses
@@ -377,6 +378,72 @@ class DatabaseHelper {
         : 0.0;
     
     return totalIncome - totalExpense;
+  }
+
+  Future<double> getTotalShares() async {
+    /**
+     * Calculates total shares value: sum of all shares
+     */
+    final db = await _getDatabase();
+    List<Map<String, dynamic>> shareResult = await db.rawQuery(
+      '''
+      SELECT 
+        COALESCE(SUM(value), 0) as total 
+      FROM 
+        expenses 
+      WHERE 
+        type = 'share'
+      '''
+    );
+    double totalShares = shareResult.isNotEmpty && shareResult[0]['total'] != null
+        ? (shareResult[0]['total'] as num).toDouble()
+        : 0.0;
+    
+    return totalShares;
+  }
+
+  Future<double> getTotalIncomes() async {
+    /**
+     * Calculates total incomes: sum of all incomes
+     */
+    final db = await _getDatabase();
+    List<Map<String, dynamic>> incomeResult = await db.rawQuery(
+      '''
+      SELECT 
+        COALESCE(SUM(value), 0) as total 
+      FROM 
+        expenses 
+      WHERE 
+        type = 'income'
+      '''
+    );
+    double totalIncome = incomeResult.isNotEmpty && incomeResult[0]['total'] != null
+        ? (incomeResult[0]['total'] as num).toDouble()
+        : 0.0;
+    
+    return totalIncome;
+  }
+
+  Future<double> getTotalExpenses() async {
+    /**
+     * Calculates total expenses: sum of all expenses
+     */
+    final db = await _getDatabase();
+    List<Map<String, dynamic>> expenseResult = await db.rawQuery(
+      '''
+      SELECT 
+        COALESCE(SUM(value), 0) as total 
+      FROM 
+        expenses 
+      WHERE 
+        type = 'expense'
+      '''
+    );
+    double totalExpense = expenseResult.isNotEmpty && expenseResult[0]['total'] != null
+        ? (expenseResult[0]['total'] as num).toDouble()
+        : 0.0;
+    
+    return totalExpense;
   }
 
   Future<void> _upgradeDatabase(Database db, int oldVersion, int newVersion) async {

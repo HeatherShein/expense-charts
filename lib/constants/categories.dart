@@ -9,7 +9,8 @@ class ExpenseCategories {
     'leisure',
     'regular',
     'restaurant',
-    'trip'
+    'trip',
+    'share'
   ];
 
   /// Category display names for UI
@@ -22,6 +23,7 @@ class ExpenseCategories {
     'regular': 'Regular',
     'restaurant': 'Restaurant',
     'trip': 'Trip',
+    'share': 'Share',
   };
 
   /// Category names for CSV export (French)
@@ -34,6 +36,7 @@ class ExpenseCategories {
     'regular': 'Régulier',
     'restaurant': 'Restaurant',
     'trip': 'Voyage',
+    'share': 'Action',
   };
 
   /// Check if a category is valid

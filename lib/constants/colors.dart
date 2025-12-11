@@ -13,6 +13,7 @@ class CategoryColors {
     'exceptional': Vx.amber400,
     'health': Vx.teal400,
     'alcohol': Vx.red400,
+    'share': Vx.green400,
   };
 
   /// Default color for unknown categories

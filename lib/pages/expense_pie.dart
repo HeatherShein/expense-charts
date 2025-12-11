@@ -4,7 +4,6 @@ import 'package:expenses_charts/components/indicator.dart';
 import 'package:expenses_charts/components/money_amount.dart';
 import 'package:expenses_charts/components/settings_menu.dart';
 import 'package:expenses_charts/models/expense_group.dart';
-import 'package:expenses_charts/providers/budget_provider.dart';
 import 'package:expenses_charts/providers/settings.dart';
 import 'package:expenses_charts/utils/expense_utils.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -19,36 +18,32 @@ class ExpensePiePage extends StatefulWidget {
 }
 
 class _ExpensePiePageState extends State<ExpensePiePage> {
-  @override
-  void initState() {
-    super.initState();
-    // Initialize budget provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BudgetProvider>().initialize();
-    });
-  }
 
-  List<PieChartSectionData> getSections(Map<String, List<double>> totalPerCategory) {
-    List<PieChartSectionData> sections = totalPerCategory.keys.map((category) {
-      double total = totalPerCategory[category]!.reduce((value, element) => value + element);
+  List<PieChartSectionData> getSections(Map<String, List<double>> totalPerGroup, bool isShare) {
+    List<PieChartSectionData> sections = totalPerGroup.keys.map((groupKey) {
+      double total = totalPerGroup[groupKey]!.reduce((value, element) => value + element);
       total = double.parse(total.toStringAsFixed(2));
       return PieChartSectionData(
         value: total,
-        title: category,
+        title: groupKey,
         showTitle: false,
-        color: ExpenseUtils.getColorForCategory(category),
+        color: isShare 
+          ? ExpenseUtils.getColorForLabel(groupKey)
+          : ExpenseUtils.getColorForCategory(groupKey),
       );
     }).toList();
     sections.sort((a, b) => a.title.compareTo(b.title));
     return sections;
   }
 
-  static List<Indicator> getLegend(List<String> categories) {
-    categories.sort();
-    return List.generate(categories.length, (index) {
+  static List<Indicator> getLegend(List<String> groups, bool isShare) {
+    groups.sort();
+    return List.generate(groups.length, (index) {
       return Indicator(
-        color: ExpenseUtils.getColorForCategory(categories[index]), 
-        text: categories[index], 
+        color: isShare 
+            ? ExpenseUtils.getColorForLabel(groups[index])
+            : ExpenseUtils.getColorForCategory(groups[index]), 
+        text: groups[index], 
         isSquare: true,
         isBold: false,
       );
@@ -58,7 +53,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
   @override
   Widget build(BuildContext context) {
     final settingsState = context.watch<SettingsProvider>();
-    final budgetProvider = context.watch<BudgetProvider>();
+    final bool isShare = settingsState.entryType == "share";
     return FutureBuilder(
       future: ExpenseUtils.getExpenseGroups(settingsState.entryType, "", settingsState.startDate, settingsState.endDate), 
       builder: (context, snapshot) {
@@ -68,9 +63,11 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
           return Text('Error ${snapshot.error}');
         } else {
           List<ExpenseGroup>? expenseGroups = snapshot.data;
-          Map<String, List<double>> totalPerCategory = ExpenseUtils.getTotalPerCategory(expenseGroups!);
-          List<Indicator> indicators = getLegend(totalPerCategory.keys.toList());
-          List<PieChartSectionData> sections = getSections(totalPerCategory);
+          Map<String, List<double>> totalPerGroup = isShare 
+              ? ExpenseUtils.getTotalPerLabel(expenseGroups!)
+              : ExpenseUtils.getTotalPerCategory(expenseGroups!);
+          List<Indicator> indicators = getLegend(totalPerGroup.keys.toList(), isShare);
+          List<PieChartSectionData> sections = getSections(totalPerGroup, isShare);
           double moneyAmountWidth = 90;
           double boxRadius = 20;
           double textFontSize = 12;
@@ -140,18 +137,6 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                               fontSize: 18,
                               fontWeight: FontWeight.w200,
                             )
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Remaining : ${budgetProvider.getFormattedBudget(settingsState.currency)}",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w200,
-                                )
-                              )
-                            ],
                           ),
                           const SizedBox(height: 16,),
                           Column(

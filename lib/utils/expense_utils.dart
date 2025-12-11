@@ -18,13 +18,31 @@ class ExpenseUtils {
     return CategoryColors.getColorForCategory(category);
   }
 
+  static Color getColorForLabel(String label) {
+    /**
+     * Get a consistent color for a label (used for shares).
+     * Uses a hash-based approach to assign colors consistently.
+     */
+    // Create a simple hash from the label
+    int hash = label.hashCode;
+    // Use the hash to pick a color from available category colors
+    List<Color> availableColors = CategoryColors.allColors;
+    if (availableColors.isEmpty) {
+      return CategoryColors.defaultColor;
+    }
+    // Use absolute value and modulo to get a consistent index
+    int colorIndex = hash.abs() % availableColors.length;
+    return availableColors[colorIndex];
+  }
+
   static List<Map<String, dynamic>> getExpenseDistributed(DateTime startDate, DateTime endDate, List<Map<String, dynamic>> expenses) {
     /**
      * Distributes expenses over their own period for each day.
      * 
-     * Out : {
+     *  Out : {
      *  'date': DateTime,
      *  'category': String,
+     *  'label': String,  // Add this
      *  'value': double
      * }
      */
@@ -43,6 +61,7 @@ class ExpenseUtils {
             distributedExpenses.add({
               'date': expenseDayDate,
               'category': expense['category'] as String,
+              'label': expense['label'] as String, 
               'value': expense['value']/(duration+1) as double,
             });
           }
@@ -56,6 +75,7 @@ class ExpenseUtils {
           distributedExpenses.add({
             'date': expenseStartDate,
             'category': expense['category'],
+            'label': expense['label'],
             'value': expense['value']
           });
         }
@@ -67,6 +87,7 @@ class ExpenseUtils {
   static Future<List<ExpenseGroup>> getExpenseGroups(String entryType, String aggregateType, DateTime startDate, DateTime endDate) async {
     /**
      * Compute expense groups based on an aggregateType.
+      * For shares, groups by label instead of category.
      */
     final DatabaseHelper dbhelper = DatabaseHelper();
     // Query the relevant data
@@ -111,8 +132,12 @@ class ExpenseUtils {
         }
         break;
     }
+
+    // For shares, group by label instead of category
+    String groupByField = (entryType == "share") ? "label" : "category";
+
     // Group expenses
-    var expensesGrouped = groupBy(distributedExpenses, (Map map) => "${map['formattedDate']}-${map['category']}");
+    var expensesGrouped = groupBy(distributedExpenses, (Map map) => "${map['formattedDate']}-${map[groupByField]}");
     // Aggregate values per group (sum of values)
     List<Map<String, dynamic>> expensesAggregated = [];
     expensesGrouped.forEach((key, grouped) { 
@@ -122,7 +147,7 @@ class ExpenseUtils {
       }
       expensesAggregated.add({
         'formattedDate': grouped[0]['formattedDate'],
-        'category': grouped[0]['category'],
+        'category': grouped[0][groupByField],
         'totalValue': totalValue
       });
     });
@@ -213,9 +238,26 @@ class ExpenseUtils {
     return expenseStats;
   }
 
-  static Map<String, List<double>> getTotalPerCategory(List<ExpenseGroup> expenseGroups) {
+  static Map<String, List<double>> getTotalPerLabel(List<ExpenseGroup> expenseGroups) {
+    /**
+     * Regroups every expense per label (for shares).
+     */
+    Map<String, List<double>> totalPerLabel = {};
+    for (ExpenseGroup expenseGroup in expenseGroups) {
+      // For shares, category field contains the label
+      String label = expenseGroup.category;
+      if (!totalPerLabel.containsKey(label)) {
+        totalPerLabel[label] = [];
+      }
+      totalPerLabel[label]!.add(expenseGroup.aggregatedValue);
+    }
+    return totalPerLabel;
+  }
+
+  static Map<String, List<double>> getTotalPerCategory(List<ExpenseGroup> expenseGroups, {String? entryType}) {
     /**
      * Regroups every expense per category of an ExpenseGroup list.
+     * Excludes "share" category when entryType is not "share".
      */
     Map<String, List<double>> totalPerCategory = {};
     for (ExpenseGroup expenseGroup in expenseGroups) {
@@ -224,8 +266,12 @@ class ExpenseUtils {
       }
       totalPerCategory[expenseGroup.category]!.add(expenseGroup.aggregatedValue);
     }
-    // Add empty categories
-    for (String category in ExpenseCategories.all) {
+    // Add empty categories, but exclude "share" if entryType is not "share"
+    List<String> categoriesToAdd = ExpenseCategories.all;
+    if (entryType != "share") {
+      categoriesToAdd = ExpenseCategories.all.where((cat) => cat != "share").toList();
+    }
+    for (String category in categoriesToAdd) {
       if (!totalPerCategory.containsKey(category)) {
         totalPerCategory[category] = [0];
       }
@@ -273,19 +319,21 @@ class ExpenseUtils {
         SettingsProvider settingsState = context.watch<SettingsProvider>();
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setStateFunction) {
+            String currentType = type;
+            bool currentIsLongExpense = isLongExpense;
             return AlertDialog(
               title: Row(
                 children: [
                   Text(isNewExpense ? "Create Expense" : "Edit Expense"),
                   const Spacer(),
-                  Checkbox(
-                    value: isLongExpense, 
+                  currentType != 'share' ? Checkbox(
+                    value: currentIsLongExpense, 
                     onChanged: (bool? value) {
                       setStateFunction(() {
-                        isLongExpense = value!;
+                        currentIsLongExpense = value!;
                       });
                     }
-                  )
+                  ) : const SizedBox.shrink(),
                 ],
               ),
               content: SingleChildScrollView(
@@ -305,7 +353,7 @@ class ExpenseUtils {
                         initialValue: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochStart),
                         initialDate: DateTime.fromMillisecondsSinceEpoch(millisSinceEpochStart),
                       ),
-                      isLongExpense ? FormBuilderDateTimePicker(
+                      (currentIsLongExpense && currentType != 'share') ? FormBuilderDateTimePicker(
                         name: "end_date",
                         inputType: InputType.date,
                         format: DateFormat('d/M/y'),
@@ -335,9 +383,25 @@ class ExpenseUtils {
                             value: "income",
                             child: Text("Income")
                           ),
-                        ]
+                          DropdownMenuItem(
+                            alignment: AlignmentDirectional.center,
+                            value: "share",
+                            child: Text("Share")
+                          ),
+                        ],
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setStateFunction(() {
+                              currentType = newValue;
+                              // If switching to share, disable long expense
+                              if (newValue == "share") {
+                                currentIsLongExpense = false;
+                              }
+                            });
+                          }
+                        },
                       ),
-                      FormBuilderDropdown(
+                      currentType != "share" ? FormBuilderDropdown(
                         name: "category", 
                         decoration: const InputDecoration(
                           labelText: "Category",
@@ -386,7 +450,7 @@ class ExpenseUtils {
                             child: Text("Alcohol")
                           ),
                         ]
-                      ),
+                      ) : const SizedBox.shrink(),
                       FormBuilderTextField(
                         name: "label",
                         decoration: const InputDecoration(
@@ -434,9 +498,13 @@ class ExpenseUtils {
                           // TODO: fix 9 hours offset.
                           var formMillisSinceEpochStart = formValues?['start_date'].millisecondsSinceEpoch + (10*3600*1000);
                           var formEndDate = formValues?['end_date'] ?? formValues?['start_date'];
-                          var formMillisSinceEpochEnd = isLongExpense ? formEndDate.millisecondsSinceEpoch + (10*3600*1000) : formMillisSinceEpochStart;
-                          var formType = formValues?['type'];
-                          var formCategory = formValues?['category'];
+                          // For shares, always use start date as end date (no period)
+                          var formMillisSinceEpochEnd = (currentType == "share" || !currentIsLongExpense) 
+                              ? formMillisSinceEpochStart 
+                              : formEndDate.millisecondsSinceEpoch + (10*3600*1000);
+                          var formType = formValues?['type'] ?? currentType;
+                          // For shares, automatically set category to "share"
+                          var formCategory = (formType == "share") ? "share" : (formValues?['category'] ?? category);
                           var formLabel = formValues?['label'];
                           var formValue = formValues!['value'].replaceAll(",", ".");
                           formValue = double.parse(formValue);

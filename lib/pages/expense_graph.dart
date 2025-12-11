@@ -18,7 +18,7 @@ class ExpenseGraphPage extends StatefulWidget {
 }
 
 class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
-  List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups, {String keyFilter = ''}) {
+  List<BarChartGroupData> getBarGroups(List<ExpenseGroup> expenseGroups, {String keyFilter = '', required bool isShare}) {
     Map<String, List<ExpenseGroup>> groupedByAggregate = {};
 
     // Regroup expenses by group aggregate
@@ -51,7 +51,9 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           BarChartRodData(
             fromY: totalValue,
             toY: double.parse((totalValue + aggregatedValue).toDoubleStringAsFixed()),
-            color: ExpenseUtils.getColorForCategory(values.category),
+            color: isShare 
+              ? ExpenseUtils.getColorForLabel(values.category)
+              : ExpenseUtils.getColorForCategory(values.category),
             width: 8,
           ),
         );
@@ -120,11 +122,13 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
     );
   }
 
-  List<Indicator> getLegend(List<String> categories, SettingsProvider settingsState) {
+  List<Indicator> getLegend(List<String> categories, SettingsProvider settingsState, {required bool isShare}) {
     categories.sort();
     return List.generate(categories.length, (index) {
       return Indicator(
-        color: ExpenseUtils.getColorForCategory(categories[index]), 
+        color: isShare 
+          ? ExpenseUtils.getColorForLabel(categories[index])
+          : ExpenseUtils.getColorForCategory(categories[index]),  
         text: categories[index], 
         isSquare: true,
         onTap: () {
@@ -146,6 +150,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsState = context.watch<SettingsProvider>();
+    final bool isShare = settingsState.entryType == "share";
     return FutureBuilder(
       // Load expense groups
       future: ExpenseUtils.getExpenseGroups(
@@ -161,8 +166,10 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
           return Text('Error ${snapshot.error}');
         } else {
           List<ExpenseGroup>? expenseGroups = snapshot.data;
-          Map<String, List<double>> totalPerCategory = ExpenseUtils.getTotalPerCategory(expenseGroups!);
-          List<Indicator> indicators = getLegend(totalPerCategory.keys.toList(), settingsState);
+          Map<String, List<double>> totalPerGroup = isShare 
+            ? ExpenseUtils.getTotalPerLabel(expenseGroups!)
+            : ExpenseUtils.getTotalPerCategory(expenseGroups!, entryType: settingsState.entryType);
+          List<Indicator> indicators = getLegend(totalPerGroup.keys.toList(), settingsState, isShare: isShare);
           // Make the selected indicator bold
           for (var i = 0; i < indicators.length; i++) {
             indicators[i].isBold = i == settingsState.boldIndex;
@@ -193,6 +200,8 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                               onChanged: (String? value) {
                                 setState(() {
                                   settingsState.entryType = value!;
+                                  settingsState.keyFilter = '';
+                                  settingsState.boldIndex = -1;
                                 });
                               },
                             ),
@@ -243,7 +252,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                     Flexible(
                       child: BarChart(
                         BarChartData(
-                          barGroups: getBarGroups(expenseGroups, keyFilter: settingsState.keyFilter),
+                          barGroups: getBarGroups(expenseGroups, keyFilter: settingsState.keyFilter, isShare: settingsState.entryType == "share"),
                           borderData: FlBorderData(
                             show: true
                           ),
@@ -255,18 +264,24 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                       ),
                     ),
                     const SizedBox(height: 8,),
-                    Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [indicators[0], indicators[1], indicators[2], indicators[3]],
+                    indicators.isEmpty 
+                      ? const SizedBox.shrink()
+                      : Column(
+                          children: [
+                            if (indicators.isNotEmpty)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: indicators.length > 4
+                                    ? indicators.sublist(0, 4)
+                                    : indicators,
+                              ),
+                            if (indicators.length > 4)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: indicators.sublist(4),
+                              ),
+                          ]
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [indicators[4], indicators[5], indicators[6], indicators[7]],
-                        )
-                      ]
-                    ),
                     const SizedBox(height: 10),
                   ],
                 ),

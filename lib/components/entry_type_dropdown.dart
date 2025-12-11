@@ -24,6 +24,10 @@ class EntryTypeDropdown extends StatelessWidget {
           value: 'income',
           child: Text('Income'),
         ),
+        DropdownMenuItem<String>(
+          value: 'share',
+          child: Text('Share'),
+        ),
       ],
       onChanged: onChanged,
     );

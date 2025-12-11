@@ -32,6 +32,36 @@ class BudgetProvider extends ChangeNotifier {
     }
   }
 
+  Future<double> getTotalShares() async {
+    final dbHelper = DatabaseHelper();
+    return await dbHelper.getTotalShares();
+  }
+
+  Future<double> getTotalIncomes() async {
+    final dbHelper = DatabaseHelper();
+    return await dbHelper.getTotalIncomes();
+  }
+
+  Future<double> getTotalExpenses() async {
+    final dbHelper = DatabaseHelper();
+    return await dbHelper.getTotalExpenses();
+  }
+
+  // Method to get total money (shares + incomes - expenses)
+  Future<double> getTotalMoney() async {
+    final shares = await getTotalShares();
+    final incomes = await getTotalIncomes();
+    final expenses = await getTotalExpenses();
+    return shares + incomes - expenses;
+  }
+
+  // Method to get total without shares (incomes - expenses)
+  Future<double> getTotalWithoutShares() async {
+    final incomes = await getTotalIncomes();
+    final expenses = await getTotalExpenses();
+    return incomes - expenses;
+  }
+
   /// Check if budget is set (not zero)
   bool get isBudgetSet => _remainingBudget != 0.0;
 
