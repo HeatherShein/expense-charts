@@ -85,7 +85,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                 Icons.pie_chart_outline_rounded,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              title: const Text("Pie chart"),
+              title: const Text("Distribution"),
               actions: const [
                 SettingsMenu(),
               ],
@@ -150,14 +150,7 @@ class _ExpensePiePageState extends State<ExpensePiePage> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.w200,
                                 )
-                              ),
-                              IconButton(
-                                onPressed: () async {
-                                  await budgetProvider.refresh();
-                                }, 
-                                icon: const Icon(Icons.refresh_rounded),
-                                tooltip: "Refresh budget",
-                              ),
+                              )
                             ],
                           ),
                           const SizedBox(height: 16,),

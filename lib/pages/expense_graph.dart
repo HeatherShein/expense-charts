@@ -173,7 +173,7 @@ class _ExpenseGraphPageState extends State<ExpenseGraphPage> {
                 Icons.auto_graph_rounded, 
                 color: Theme.of(context).colorScheme.primary,
               ),
-              title: const Text("Graph"),
+              title: const Text("Evolution"),
               actions: const [
                 SettingsMenu(),
               ],

@@ -93,8 +93,8 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
               bottomNavigationBar: BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
                 items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(icon: Icon(Icons.auto_graph_rounded), label: 'Graph'),
-                  BottomNavigationBarItem(icon: Icon(Icons.pie_chart_outline_rounded), label: 'Pie'),
+                  BottomNavigationBarItem(icon: Icon(Icons.auto_graph_rounded), label: 'Evolution'),
+                  BottomNavigationBarItem(icon: Icon(Icons.pie_chart_outline_rounded), label: 'Distribution'),
                   BottomNavigationBarItem(icon: Icon(Icons.format_list_bulleted_rounded), label: 'Details'),
                 ],
                 currentIndex: _selectedIndex,

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Main entry point of the Expense Charts application
+/// Main entry point of the Money Tracker application
 /// 
 /// Initializes the SQLite database and sets up the app with providers
 /// for state management (Settings and Budget).
@@ -17,7 +17,7 @@ Future main() async {
   runApp(const MyApp());
 }
 
-/// Root widget of the Expense Charts application
+/// Root widget of the Money Tracker application
 /// 
 /// Configures the app with Material Design 3 theme and providers
 /// for state management across the entire application.
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => BudgetProvider()),
       ],
       child: MaterialApp(
-        title: 'Expense Charts',
+        title: 'Money Tracker',
         home: const WidgetTreePage(),
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
