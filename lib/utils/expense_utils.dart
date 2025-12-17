@@ -280,18 +280,20 @@ class ExpenseUtils {
   }
 
   static Future<void> showExpenseDialog(
-    bool isNewExpense,
-    BuildContext context,
-    int millisSinceEpochStart,
-    int millisSinceEpochEnd,
-    String type,
-    String category,
-    String label,
-    String value,
-    String currency,
-    bool isLongExpense,
-    GlobalKey<FormBuilderState> formKey,
-    VoidCallback refreshCallback,
+    {
+      required bool isNewExpense,
+      required BuildContext context,
+      required int millisSinceEpochStart,
+      required int millisSinceEpochEnd,
+      required String type,
+      required String category,
+      required String label,
+      required String value,
+      required String currency,
+      required bool isLongExpense,
+      required GlobalKey<FormBuilderState> formKey,
+      required VoidCallback refreshCallback,
+    }
   ) async {
     /**
      * Displays a Dialog window to insert/update an expense
@@ -317,10 +319,10 @@ class ExpenseUtils {
       context: context, 
       builder: (BuildContext context) {
         SettingsProvider settingsState = context.watch<SettingsProvider>();
+        String currentType = type;
+        bool currentIsLongExpense = isLongExpense;
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setStateFunction) {
-            String currentType = type;
-            bool currentIsLongExpense = isLongExpense;
             return AlertDialog(
               title: Row(
                 children: [

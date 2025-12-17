@@ -53,18 +53,18 @@ class _ExpenseTileState extends State<ExpenseTile> {
     return GestureDetector(
       onTap: () async {
         ExpenseUtils.showExpenseDialog(
-          false,
-          context,
-          widget.millisSinceEpochStart,
-          widget.millisSinceEpochEnd,
-          widget.type,
-          widget.category,
-          widget.label,
-          widget.value,
-          widget.currency,
-          isLongExpense,
-          _formKey,
-          widget.refreshCallback,
+          isNewExpense: false,
+          context: context,
+          millisSinceEpochStart: widget.millisSinceEpochStart,
+          millisSinceEpochEnd: widget.millisSinceEpochEnd,
+          type: widget.type,
+          category: widget.category,
+          label: widget.label,
+          value: widget.value,
+          currency: widget.currency,
+          isLongExpense: isLongExpense,
+          formKey: _formKey,
+          refreshCallback: widget.refreshCallback,
         );
       },
       child: Row(

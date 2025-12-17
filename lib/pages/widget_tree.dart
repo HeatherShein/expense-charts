@@ -75,18 +75,18 @@ class _WidgetTreePageState extends State<WidgetTreePage> {
                   DateTime today = DateTime.now();
                   int millisSinceEpochStart = DateTime(today.year, today.month, today.day, 10).millisecondsSinceEpoch;
                   ExpenseUtils.showExpenseDialog(
-                    true,
-                    context, 
-                    millisSinceEpochStart,
-                    millisSinceEpochStart, 
-                    "expense", 
-                    "grocery", 
-                    "", 
-                    "", 
-                    "EUR", 
-                    false, 
-                    _formKey, 
-                    () { setState(() {}); }
+                    isNewExpense: true,
+                    context: context, 
+                    millisSinceEpochStart: millisSinceEpochStart,
+                    millisSinceEpochEnd: millisSinceEpochStart, 
+                    type: "expense", 
+                    category: "grocery", 
+                    label: "", 
+                    value: "", 
+                    currency: "EUR", 
+                    isLongExpense: false, 
+                    formKey: _formKey, 
+                    refreshCallback: () { setState(() {}); }
                   );
                 },
                 child: const Icon(Icons.add_rounded),
