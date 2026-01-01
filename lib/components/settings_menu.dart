@@ -93,12 +93,18 @@ Future<void> exportDatabase(BuildContext context) async {
       return;
     }
 
+    // Check if context is still valid before proceeding
+    if (!context.mounted) return;
+
     // Prompt the user for filename
     String? filename = await _showFilenameDialog(context, 'expense_database.db', 'db');
     if (filename == null || filename.isEmpty) {
       // User canceled or didn't enter filename
       return;
     }
+
+    // Check again after dialog
+    if (!context.mounted) return;
 
     // Ensure filename has the correct extension
     if (!filename.endsWith('.db')) {
@@ -109,6 +115,7 @@ Future<void> exportDatabase(BuildContext context) async {
     String destinationPath = path.join(destinationDir, filename);
 
     // Show loading dialog
+    if (!context.mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -131,12 +138,13 @@ Future<void> exportDatabase(BuildContext context) async {
       // Copy the database file to the destination
       await File(databasePath).copy(destinationPath);
 
+      // Check if context is still valid before using it
+      if (!context.mounted) return;
+
       // Dismiss loading dialog
-      // ignore: use_build_context_synchronously
       Navigator.pop(context);
 
       // Show a success message
-      // ignore: use_build_context_synchronously
       final scaffold = ScaffoldMessenger.of(context);
       scaffold.showSnackBar(
         SnackBar(
@@ -144,10 +152,11 @@ Future<void> exportDatabase(BuildContext context) async {
         )
       );
     } on PlatformException catch (e) {
+      // Check if context is still valid before using it
+      if (!context.mounted) return;
+
       // Dismiss loading dialog
-      // ignore: use_build_context_synchronously
       Navigator.pop(context);
-      // ignore: use_build_context_synchronously
       final scaffold = ScaffoldMessenger.of(context);
       scaffold.showSnackBar(
         SnackBar(
@@ -156,7 +165,9 @@ Future<void> exportDatabase(BuildContext context) async {
       );
     }
   } catch (e) {
-    // ignore: use_build_context_synchronously
+    // Check if context is still valid before using it
+    if (!context.mounted) return;
+
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
@@ -198,8 +209,15 @@ Future<void> importDatabase(BuildContext context) async {
 
     if (filePath == null) {
       // User canceled file selection
+      // Dismiss loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
       return;
     }
+
+    // Check if context is still valid before proceeding
+    if (!context.mounted) return;
 
     // Open the selected database file
     Database importedDatabase = await openDatabase(filePath);
@@ -239,12 +257,13 @@ Future<void> importDatabase(BuildContext context) async {
       }
     });
 
+    // Check if context is still valid before using it
+    if (!context.mounted) return;
+
     // Dismiss loading dialog
-    // ignore: use_build_context_synchronously
     Navigator.pop(context);
 
     // Show a success message
-    // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
@@ -252,10 +271,11 @@ Future<void> importDatabase(BuildContext context) async {
       )
     );
   } catch (e) {
+    // Check if context is still valid before using it
+    if (!context.mounted) return;
+
     // Dismiss loading dialog
-    // ignore: use_build_context_synchronously
     Navigator.pop(context);
-    // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
@@ -277,12 +297,15 @@ Future<void> preExportCsv(BuildContext context) async {
 
   DateTime startDate;
   DateTime endDate;
+  
+  // Capture the original context from the widget tree
+  final BuildContext originalContext = context;
 
   // Show loading dialog
-  showDialog(
+  await showDialog(
     context: context, 
-    builder: (BuildContext context) {
-      SettingsProvider settingsState = context.watch<SettingsProvider>();
+    builder: (BuildContext dialogContext) {
+      SettingsProvider settingsState = dialogContext.watch<SettingsProvider>();
       return AlertDialog(
         title: const Text("Select date range"),
         content: FormBuilder(
@@ -311,16 +334,18 @@ Future<void> preExportCsv(BuildContext context) async {
               ),
               const SizedBox(height: 10.0,),
               MaterialButton(
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(dialogContext).colorScheme.secondary,
                 onPressed: () async {
                   _formKey.currentState?.saveAndValidate();
                   var formValues = _formKey.currentState?.value;
                   startDate = formValues?['start_date'];
                   endDate = formValues?['end_date'];
-                  exportCsv(context, startDate, endDate);
                   // Dismiss loading dialog
-                  // ignore: use_build_context_synchronously
-                  Navigator.pop(context);
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+                  // Use the original context from the widget tree
+                  exportCsv(originalContext, startDate, endDate);
                 },
                 child: const Text(
                   "Confirm dates"
@@ -349,10 +374,47 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
       return;
     }
 
+    // Check if context is still valid before proceeding
+    if (!context.mounted) {
+      // Try to show error message using navigator context
+      try {
+        final navigator = Navigator.of(context, rootNavigator: true);
+        if (navigator.context.mounted) {
+          ScaffoldMessenger.of(navigator.context).showSnackBar(
+            const SnackBar(
+              content: Text("Export canceled: Application context is no longer valid"),
+            )
+          );
+        }
+      } catch (e) {
+        // If we can't show error, at least log it
+        debugPrint("Error: Context invalid after file picker: $e");
+      }
+      return;
+    }
+
     // Prompt the user for filename
     String? filename = await _showFilenameDialog(context, 'expenses.csv', 'csv');
     if (filename == null || filename.isEmpty) {
       // User canceled or didn't enter filename
+      return;
+    }
+
+    // Check again after dialog
+    if (!context.mounted) {
+      // Try to show error message using navigator context
+      try {
+        final navigator = Navigator.of(context, rootNavigator: true);
+        if (navigator.context.mounted) {
+          ScaffoldMessenger.of(navigator.context).showSnackBar(
+            const SnackBar(
+              content: Text("Export canceled: Application context is no longer valid"),
+            )
+          );
+        }
+      } catch (e) {
+        debugPrint("Error: Context invalid after filename dialog: $e");
+      }
       return;
     }
 
@@ -365,6 +427,22 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
     String destinationPath = path.join(destinationDir, filename);
 
     // Show loading dialog
+    if (!context.mounted) {
+      // Try to show error message using navigator context
+      try {
+        final navigator = Navigator.of(context, rootNavigator: true);
+        if (navigator.context.mounted) {
+          ScaffoldMessenger.of(navigator.context).showSnackBar(
+            const SnackBar(
+              content: Text("Export canceled: Application context is no longer valid"),
+            )
+          );
+        }
+      } catch (e) {
+        debugPrint("Error: Context invalid before showing loading dialog: $e");
+      }
+      return;
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -424,12 +502,13 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
       // Close file
       sink.close();
 
+      // Check if context is still valid before using it
+      if (!context.mounted) return;
+
       // Dismiss loading dialog
-      // ignore: use_build_context_synchronously
       Navigator.pop(context);
 
       // Show a success message
-      // ignore: use_build_context_synchronously
       final scaffold = ScaffoldMessenger.of(context);
       scaffold.showSnackBar(
         SnackBar(
@@ -437,10 +516,11 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
         )
       );
     } catch (e) {
+      // Check if context is still valid before using it
+      if (!context.mounted) return;
+
       // Dismiss loading dialog
-      // ignore: use_build_context_synchronously
       Navigator.pop(context);
-      // ignore: use_build_context_synchronously
       final scaffold = ScaffoldMessenger.of(context);
       scaffold.showSnackBar(
         SnackBar(
@@ -449,7 +529,9 @@ Future<void> exportCsv(BuildContext context, DateTime startDate, DateTime endDat
       );
     }
   } catch (e) {
-    // ignore: use_build_context_synchronously
+    // Check if context is still valid before using it
+    if (!context.mounted) return;
+
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
@@ -492,8 +574,15 @@ Future<void> importCsv(BuildContext context) async {
 
     if (filePath == null) {
       // User canceled file selection
+      // Dismiss loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
       return;
     }
+
+    // Check if context is still valid before proceeding
+    if (!context.mounted) return;
 
     // Open the selected csv file
     File importedCsv = File(filePath);
@@ -539,12 +628,13 @@ Future<void> importCsv(BuildContext context) async {
       }
     }
 
+    // Check if context is still valid before using it
+    if (!context.mounted) return;
+
     // Dismiss loading dialog
-    // ignore: use_build_context_synchronously
     Navigator.pop(context);
 
     // Show a success message
-    // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
@@ -552,10 +642,11 @@ Future<void> importCsv(BuildContext context) async {
       )
     );
   } catch (e) {
+    // Check if context is still valid before using it
+    if (!context.mounted) return;
+
     // Dismiss loading dialog
-    // ignore: use_build_context_synchronously
     Navigator.pop(context);
-    // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
